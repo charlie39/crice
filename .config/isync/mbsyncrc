@@ -1,0 +1,116 @@
+#vim: set filetype = mbsync
+
+SyncState *
+Sync New ReNew Flags
+#---------------------zoho-------------------------------------
+
+
+IMAPStore zoho-remote
+Host imap.zoho.eu
+Port 993
+User ikhaithang923050@zohomail.eu
+PassCmd "pass zoho/ikhaithang923050@zohomail.eu"
+SSLType IMAPS
+AuthMechs Login
+CertificateFile /etc/ssl/certs/ca-certificates.crt
+
+MaildirStore zoho-local
+Subfolders Verbatim
+Path ~/.local/share/mail/zoho/
+Inbox ~/.local/share/mail/zoho/INBOX
+Flatten .
+
+Channel zoho
+Expunge Both
+Far :zoho-remote:
+Near :zoho-local:
+Patterns * !"All Mail"
+Create Both
+SyncState *
+MaxMessages 5000
+ExpireUnread no
+
+#----------------------primary--------------------------------
+
+IMAPStore primary-remote
+Host imap.gmail.com
+Port  993
+User iamkg050392@gmail.com
+PassCmd "$XDG_CONFIG_HOME/mutt/oauth2pass iamkg050392@gmail.com"
+SSLType  IMAPS
+AuthMech XOAUTH2
+CertificateFile /etc/ssl/certs/ca-certificates.crt
+
+MaildirStore primary-local
+Subfolders Verbatim
+Path ~/.local/share/mail/primary/
+Inbox ~/.local/share/mail/primary/INBOX
+Flatten .
+
+Channel primary
+Expunge Both
+Far :primary-remote:
+Near :primary-local:
+Patterns * !"[Gmail]/All Mail"
+Create Both
+SyncState *
+MaxMessages 25000
+ExpireUnread no
+# End profile
+#-----------------------secondary--------------------------------
+
+IMAPStore secondary-remote
+Host imap.gmail.com
+Port 993
+User khaithang39@gmail.com
+PassCmd "pass email/secondary"
+AuthMechs LOGIN
+SSLType IMAPS
+CertificateFile /etc/ssl/certs/ca-certificates.crt
+
+MaildirStore secondary-local
+Subfolders Verbatim
+Path /home/charlie/.local/share/mail/secondary/
+Inbox /home/charlie/.local/share/mail/secondary/INBOX
+Flatten .
+
+Channel secondary
+Expunge Both
+Far :secondary-remote:
+Near :secondary-local:
+Patterns * !"[Gmail]/All Mail"
+Create Both
+SyncState *
+MaxMessages 10000
+ExpireUnread no
+# End profile
+
+#----------------------cock-----------------------------------
+
+
+IMAPStore cock-remote
+Host mail.cock.li
+Port 993
+User charlie39@cock.li
+PassCmd "pass email/charlie39@cock.li"
+AuthMechs LOGIN
+SSLType IMAPS
+CertificateFile /etc/ssl/certs/ca-certificates.crt
+
+MaildirStore cock-local
+Subfolders Verbatim
+Path /home/charlie/.local/share/mail/cock/
+Inbox /home/charlie/.local/share/mail/cock/INBOX
+Flatten .
+
+Channel cock
+Expunge Both
+Far :cock-remote:
+Near :cock-local:
+Patterns * !"[Gmail]/All Mail"
+Create Both
+SyncState *
+MaxMessages 0
+ExpireUnread no
+# End profile
+

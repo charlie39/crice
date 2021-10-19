@@ -1,0 +1,5 @@
+#!/usr/env bash
+
+days=30
+min=$((days * 60 * 24))
+find ~/.config/mpv/thumbnails/ -maxdepth 1 -type f -amin +$min -delete

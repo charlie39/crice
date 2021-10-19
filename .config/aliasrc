@@ -1,0 +1,50 @@
+#s Verbosity and settings that you pretty much just always are going to want.
+alias  \
+	batt="cat /sys/class/power_supply/BAT?/capacity" \
+	bash="bash --rcfile $XDG_CONFIG_HOME/bash/.bashrc" \
+	cp="cpv -iv" \
+	mv="mv -iv" \
+	rm="rm -v" \
+	mbsync="mbsync -c $XDG_CONFIG_HOME/isync/mbsyncrc" \
+	yt="youtube-dl --add-metadata -i --convert-subs srt  --embed-subs --console-title --download-archive ~cac/youtube-dl/downloaded.txt --no-post-overwrites -ciw -o '%(title)s.%(ext)s'" \
+	yta="yt -x -f bestaudio/best -embed-thumbnail" \
+	YT="youtube-viewer" \
+	ffmpeg="ffmpeg -hide_banner" \
+	t3="ps aux"
+
+# Colorize commands when possible.
+alias  \
+	ls="ls -hN --color=auto --group-directories-first --almost-all" \
+	lp="ls -hN --color=never -group-directories-first" \
+	ll="lsd -l" \
+	lla="lsd -la"\
+	lt="lsd --tree"\
+	llp="ls -la --color=never -roup-directories-first" \
+	grep="grep --color=auto" \
+	diff="diff --color=auto" \
+	cat="bat" \
+	ip="ip -c"
+
+# These common commands are just too long! Abbreviate them.
+alias  \
+	ka="killall" \
+	kX="killall Xorg" \
+	pkill="pkill --echo"\
+	g="git" \
+	trem="transmission-remote" \
+	sdn="sudo shutdown -h now" \
+	rfba="sudo rfkill block all" \
+	vf="vifm" \
+	p="sudo pacman --color auto" \
+
+# Some other stuff
+alias  \
+	magit="nvim -c MagitOnly" \
+	ref="shortcuts>/dev/null;source $XDG_CONFIG_HOME/shortcutrc;source $XDG_CONFIG_HOME/shell_functions;source $XDG_CONFIG_HOME/aliasrc" \
+	weath="less -S $XDG_DATA_HOME/.local/share/weatherreport" \
+	mvn="mvn -s $HOME/.local/repo/.m2/settings.xml"\
+	e="nvim" \
+	f="ranger" \
+	irssi="irssi --home=$XDG_CONFIG_HOME/irssi -c localhost -p 8090 -w znc"\
+	znc="znc --datadir ~/.config/znc"
+

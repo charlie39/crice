@@ -1,0 +1,23 @@
+#!/bin/zsh
+
+# i3blocks mail module.
+# Displays number of unread mail and an loading icon if updating.
+# When clicked, brings up `neomutt`.
+
+case $BLOCK_BUTTON in
+	1) "$TERMINAL" -e neomutt ;;
+	2) setsid mbsync -c $XDG_CONFIG_HOME/isync/mbsyncrc primary >/dev/null & ;;
+	3) notify-send "📬 Mail module" "\- Shows unread mail
+- Shows 🔃 if syncing mail
+- Left click opens neomutt
+- Shift+Left Click to open config
+- Middle click syncs mail" ;;
+	6) "$TERMINAL" -e "$EDITOR" "$0" ;;
+esac
+
+# unread="$(find ${XDG_DATA_HOME:-$HOME/.local/share}/mail/primary/INBOX/cur/* -type f | wc -l 2>/dev/null)"
+unread="$(find ${XDG_DATA_HOME:-$HOME/.local/share}/mail/primary/INBOX/new/* -type f | wc -l 2>/dev/null)"
+icon=""
+[ -f "/tmp/imapsyncicon_$USER" ] && icon="$(cat "/tmp/imapsyncicon_$USER")" 2>/dev/null
+
+[[ "$unread" == "0" ]] && [[ "$icon" == "" ]] || echo "📬 $unread$(cat "/tmp/imapsyncicon_$USER" 2>/dev/null)"

@@ -1,0 +1,13 @@
+text/plain; $EDITOR %s;
+# text/html; lynx -assume_charset=%{charset} -display_charset=utf-8 -dump %s; nametemplate=%s.html; copiousoutput;
+text/html;w3m -T text/html '%s' ; needsterminal
+text/html;surf '%s';test=test -n "$DISPLAY"
+text/html;elinks '%s';
+text/html;w3m -T text/html '%s' ; copiousoutput
+image/png;sxiv '%s'; needsterminal
+image/jpeg;sxiv '%s'; needsterminal
+image/jpeg;w3m '%s'; needsterminal
+application/pdf;zathura '%s'; test=test -n "$DISPLAY"
+# application/pdf;pdfcat '%s'; copiousoutput
+application/pgp-encrypted; gpg -d '%s'; copiousoutput;
+application/pgp-keys; gpg --import '%s'; copiousoutput;

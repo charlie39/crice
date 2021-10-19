@@ -1,0 +1,33 @@
+#!/bin/env sh
+
+# Prints all batteries, their percentage remaining and an emoji corresponding
+# to charge status (🔌 for plugged up, 🔋 for discharging on battery, etc.).
+
+case $BLOCK_BUTTON in
+    2) notify-send "$(cat /sys/class/power_supply/BAT1/uevent)" ;;
+    3) notify-send "🔋 Battery module" "🔋: discharging
+🛑: not charging
+♻: stagnant charge
+🔌: charging
+⚡: charged
+❗: battery very low!" ;;
+	6) "$TERMINAL" -e "$EDITOR" "$0" ;;
+esac
+# Loop through all attached batteries.
+battery="/sys/class/power_supply/BAT1"
+# Get its remaining capacity and charge status.
+capacity=$(cat "$battery"/capacity)
+status=$(sed "s/Discharging/🔋/;s/Not charging/🛑/;s/Charging/🔌/;s/Unknown/♻️/;s/Full/⚡/" "$battery"/status)
+# If it is discharging and 25% or less, we will add a ❗ as a warning and notify send a message
+[ "$capacity" -le 25 ] && [ "$status" = "🔋" ] && warn="❗" && [ "$capacity" -gt 10 ] && notify-send -u normal "Battery low. Plug in a power source"
+printf "%s%s%s%%\n" "$status" "$warn" "$capacity"
+unset warn
+if [ "$capacity" -eq 10 ] && [ "$status" = "🔋" ]; then
+( notify-send -i /usr/share/icons/Adwaita/24x24/status/battery-level-0-symbolic.symbolic.png -u critical -t 1900 "Battery is at $capacity%   Plug in the Power"
+aplay /home/charlie/.local/share/sound/ping_notification.wav ) 2>/dev/null
+fi
+#change cpufreq depending power supply
+preset="/sys/devices/system/cpu/cpufreq/policy1/scaling_governor"
+[ "$status" = "🔋" ] && [ "$(cat $preset)" = "performance" ]  && cpufreq powersave  1>>~/cpufreq.log 2>&1
+[[ "$status" =~ (🔌|⚡) ]] && [ "$(cat $preset)" = "powersave" ] && cpufreq performance  1>>~/cpufreq.log 2>&1
+

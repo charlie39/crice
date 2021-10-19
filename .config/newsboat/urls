@@ -1,0 +1,11 @@
+http://lukesmith.xyz/rss.xml
+https://www.youtube.com/feeds/videos.xml?channel_id=UC2eYFnH61tmytImy1mTYvhA "~Luke Smith (YouTube)"
+https://www.youtube.com/feeds/videos.xml?channel_id=UC9-y-6csu5WGm29I7JiwpnA
+https://www.archlinux.org/feeds/news/ "tech"
+https://www.reddit.com/r/archlinux/.rss
+#--------------------------closed bug----------------------------------
+https://bugs.archlinux.org/feed.php?feed_type=rss2&topic=clo&project=1
+#--------------------------opened bug---------------------------------
+https://bugs.archlinux.org/feed.php?feed_type=rss2&project=1
+https://invidious.kavin.rocks/feed/channel/UC8ENHE5xdFSwx71u3fDH5Xw
+https://invidious.kavin.rocks/feed/channel/UCS97tchJDq17Qms3cux8wcA

@@ -1,0 +1,71 @@
+#!/bin/bash
+
+#A simple script derived from arch wiki , to load firefox browser profile and cache to RAM
+#Place it under ~/.local/bin/ or anywhere visible to PATH
+#Just run firefox-sync to load your default profile before starting firefox
+#Or pass the profile name  as an argument to the script i.e. firefox-sync profile-name.default
+#Make sure you pass the correct and existing profile name to avoid creating junk in /tmp
+#You can have a cron job to run it automatically after boot and after every 20 mins to sync
+#Run firefox-sync rm|del|delete|remove to remove the profile/cache from memory (/tmp)
+#Dependencies : rsync and libnotify
+
+set -ex
+
+if [  "$1"x = "x" ]; then
+    #replace with your own browser profile
+    profile="sy2vakcj.default-esr"
+fi
+
+profilepath=~/.mozilla/firefox
+cachepath=~/.cache/mozilla/firefox
+
+[ -d $profilepath ] || { echo "Enter the absolute path (or relative path from $HOME) to firfox profile directory"; read  profilepath; }
+[ -d $cachepath ] || { echo "Enter the absolute path (or relative path from $HOME) to firfox cache directory"; read  cachepath; }
+
+
+regex="^(remove|rm|delete|del)$"
+
+if [[ "${1}" =~ $regex ]]; then
+    #compgen is bash built in: so only try this with bash
+    # arr=( $(compgen -G /tmp/firefox-\*) ) ||( echo "directory doesn't exist" && exit 1)
+    arr=( $(ls -d /tmp/ff-sync-*) ) ||( echo "directory doesn't exist" && exit 1)
+    #bash array starts at index 0 while zsh starts at 1: so change index for zsh conversion
+    arrfilter=$(echo "${arr[@]}" | sed -E 's/.*ff-sync-(.*default.*)-'"$USER"'.*/\1/')
+    rsync -av --delete --exclude .unpacked "${arr[0]}"/ "${cachepath}"/static-"$arrfilter"
+    rsync -av --delete --exclude .unpacked "${arr[1]}"/ "${profilepath}"/static-"$arrfilter"
+    rm -r ${arr[@]}
+    notify-send "Firefox removed from /tmp" "/tmp cleared of Firefox cache and profile"
+    exit 0
+fi
+
+static=static-${1:-$profile}
+link=${1:-$profile}
+volatileprofile=/tmp/ff-sync-${1:-$profile}-$USER-profile
+volatilecache=/tmp/ff-sync-${1:-$profile}-$USER-cache
+IFS=
+
+#loading profile
+syncff() {
+    cd "$1"
+    if [ ! -r "${2}" ]; then
+        mkdir -m0700 "$2"
+    fi
+
+    if [ "$(readlink "$link")" != "${2}" ]; then
+        mv "${link}" "${static}"
+        ln -s "${2}" "${link}"
+    fi
+
+    if [ -e "${link}"/.unpacked ]; then
+        rsync -av --delete --exclude .unpacked ./"${link}"/ ./"${static}"
+        notify-send -t 5000 "firefox sync" "rsynced Memory $3 to Static $3"
+    else
+        rsync -av ./"${static}"/ ./"${link}"
+        touch "${link}"/.unpacked
+        notify-send -t 5000 "firefox sync" "rsynced Static $3 to ZRAM $3"
+    fi
+}
+
+syncff "${profilepath}" "${volatileprofile}" "profile" &
+syncff "${cachepath}"  "${volatilecache}" "cache" &
+exit 0

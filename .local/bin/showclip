@@ -1,0 +1,12 @@
+#!/usr/bin/env sh
+
+# Display contents of selection via dunst if running.
+# Separate script for i3.
+
+clip=$(xclip -o -selection clipboard)
+prim=$(xclip -o -selection primary)
+sec=$(xclip -o -selection secondary)
+
+[ -n "$clip" ] && notify-send "Clipboard:" "$clip"
+[ -n "$prim" ] && notify-send "Primary:" "$prim"
+[ -n "$sec" ] && notify-send "Secondary:" "$sec"

@@ -1,0 +1,21 @@
+#!/bin/sh
+
+# Show wifi 📶 and percent strength or 📡 if none.
+# Show 🌐 if connected to ethernet or ❎ if none.
+
+case $BLOCK_BUTTON in
+	1) $TERMINAL -e sudo wifi-menu ;;
+	2) sudo wifi toggle > /dev/null && (wifi | (rg -q 'on' && echo "wifi is turning on .." || echo "wifi turning off..") | xargs -I {} notify-send {} ) ;;
+	3) [ "$(wc -l < /proc/net/wireless )" -gt 2 ] && notify-send "$(ip -h -s link show wlo1 | awk 'NR==4||NR==6{print F" "$1};{F=$1;sub(/RX:/,"⬇",F);sub(/TX:/,"⬆",F)}')" || \
+		( notify-send -u low "🌐 Internet module" "\- Click to connect
+📡: no wifi connection
+📶: wifi connection with quality
+❎: no ethernet
+🌐: ethernet working
+" && notify-send "$(wifi | awk '{print $1" is "$3}')") ;;
+	6) "$TERMINAL" -e "$EDITOR"  "$0" ;;
+esac
+grep -q "down" /sys/class/net/w*/operstate && wifiicon="📡" ||
+	wifiicon="$(awk 'NR==3 { print "📶", int($3 * 100 / 70) "%" }' /proc/net/wireless )"
+
+printf "%s %s\n" "$wifiicon" "$(sed "s/down/❎/;s/up/🌐/" /sys/class/net/e*/operstate)"

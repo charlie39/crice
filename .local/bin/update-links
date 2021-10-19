@@ -1,0 +1,32 @@
+#!/bin/bash
+set -ex
+if [ "$1"x == "x" ];then
+cat <<END
+    Options:
+    both ----------- update both scripts(~/.local/bin) and configs (~/.config)
+    bin|script ----- update only scripts(~/.local/bin)
+    conf|cf -------- update only configs(~/.config)
+END
+exit 1;
+fi
+
+update() {
+        m=${1/packages*crice\/};
+        [ -e $m ] || { ln -s $1 $m && exit 0;}
+        rm $m || unlink $m || { echo "there's something wrong with $m" && exit 1; }
+        ln -s $1 $m;
+    }
+
+binpat="^(bin|script|both)$"
+if [[ $1 =~ $binpat ]] ;then
+    for i in $(fd . ~/packages/repos/crice/.local/bin --type f); do
+        update "${i}"
+    done
+fi
+
+confpat="^(conf|cf|both)$"
+if [[ $1 =~ $confpat ]]; then
+    for j in $(fd . ~/packages/repos/crice --type f --hidden --exclude .local/bin); do
+        update "${j}"
+    done
+fi

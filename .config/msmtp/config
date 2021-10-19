@@ -1,0 +1,37 @@
+#vim:filetype=msmtp
+defaults
+tls	on
+tls_trust_file	/etc/ssl/certs/ca-certificates.crt
+port 587
+logfile	~/.config/msmtp/msmtp.log
+
+account zoho
+auth on
+host smtp.zoho.eu
+from ikhaithang923050@zohomail.eu
+user khaithang
+passwordeval "pass zoho/ikhaithang923050@zohomail.eu"
+
+account primary
+auth oauthbearer
+host smtp.gmail.com
+from iamkg050392@gmail.com
+user iamkg050392@gmail.com
+passwordeval ~/.config/mutt/oauth2pass iamkg050392@gmail.com primary
+
+account secondary
+auth on
+host smtp.gmail.com
+from khaithang39@gmail.com
+user khaithang39@gmail.com
+passwordeval "pass email/secondary"
+
+
+account cock
+auth on
+host mail.cock.li
+from charlie39@cock.li
+user charlie39@cock.li
+passwordeval "pass email/charlie39@cock.li"
+
+account default : primary

@@ -1,0 +1,205 @@
+#!/usr/bin/sh
+
+#-------------------------------------------------------------------------------------------------------------------------------
+#   					Files and Directories
+#-------------------------------------------------------------------------------------------------------------------------------
+
+helper() {
+	if [ -S "$NVIM_LISTEN_ADDRESS" ]; then
+		if [ "$(pgrep nvim)" ] ; then
+			EDITOR="nvr --remote-silent"
+		else
+			rm $NVIM_LISTEN_ADDRESS
+		fi
+	elif [ "$(nvr --serverlist)" ]; then
+		if [ "$(pgrep nvim)" ] ; then
+			NVIM_LISTEN_ADDRESS="$(nvr --serverlist)"
+			EDITOR="nvr --remote-silent --servername $NVIM_LISTEN_ADDRESS"
+		fi
+	fi
+}
+
+
+#editing scripts and files {local}
+function el { helper ; find  ~pjg/ ~cf/ ~pr/ ~sb/ ~vvt/ ~/vimwiki/ -type f  | fzf  --bind 'ctrl-y:execute-silent(echo {} | xclip -sel p)+abort' -m  --layout reverse --info inline  --preview 'bat --color always -p  {}' --preview-window 60%:border --color 'fg:#bbccdd,fg+:#ddeeff,preview-bg:#000000,border:#332288' | xargs -r nvr --remote-silent ; }
+# fzf --bind 'f1:execute(less -f  {}),ctrl-y:execute-silent(echo {} | xclip -sel p)+abort'
+#editing scripts and files {global}
+eg() { sudo find /etc /var /usr  -type f  -path /home  -prune -o -print  | fzf  -m --layout reverse --info inline --preview 'bat --color always  {}' --preview-window border --color 'fg:#bbccdd,fg+:#ddeeff,preview-bg:#000000,border:#332288' | xargs -r -I {} sudoedit {} ;}
+
+#changing directory by file/directory name {local}
+function cdl { cd "$(find  ~pr/ ~cf/ ~/.local/ ~/vimwiki/ -type d | fzf  --layout reverse --height 50% --info inline --preview 'lsd --color=always --icon always {}')" ;}
+
+#changing directory by file/directory name {global}
+cdg() { cd "$( sudo find / -type d -path /home -type d -prune -o -print | fzf --layout reverse --height 50% --info inline --preview 'tree -C {}')" ; }
+
+#change directory {shared directory}
+cdD() { cd "$( find  ~D/ ~D/CellPhones/ -type d| fzf --preview 'tree -C {1}')" ; }
+rf() {
+local INITIAL_QUERY=""
+local RG_PREFIX="rg --column --line-number --no-heading --follow --color=always --smart-case "
+local FZF_DEFAULT_COMMAND="$RG_PREFIX '$INITIAL_QUERY' $@"
+fzf --bind "change:reload:$RG_PREFIX {q} || true" --bind "ctrl-m:execute(less -f file)"  --ansi --disabled --query "$INITIAL_QUERY" --height=50% --layout=reverse | cut -d":" -f1
+
+  unset FZF_DEFAULT_COMMAND
+}
+
+#-------------------------------------------------------------------------------------------------------------------------------
+# 								process mgt
+#-------------------------------------------------------------------------------------------------------------------------------
+process() {
+ps -ef | fzf --bind 'ctrl-m:reload(ps aux)' --header 'Press CTRL-R to reload' --header-lines=1 --height=50% --layout=reverse --preview ""
+}
+#-------------------------------------------------------------------------------------------------------------------------------
+#                     			Package Management
+#-------------------------------------------------------------------------------------------------------------------------------
+#preview packages before installation
+pf() { pacman -Slq | fzf -m --preview 'cat <(pacman -Sii {1}) <(pacman -Fl {1} | awk "{ print $2}")' | xargs -ro sudo pacman -S ; }
+
+#preview AUR packages before installation paru
+paf() { paru -Slq -a | fzf -m --preview 'cat <(paru -Sii {1})' | xargs -ro paru --fm /usr/bin/ranger -S ; }
+
+#browse and purge installed packages with preview
+pacbrowse() { pacman -Qq | fzf -m --preview 'pacman -Qil {}' --layout=reverse --bind 'enter:execute(pacman -Qil {} | less),ctrl-x:execute(sudo pacman -Rns --noconfirm {})' ;}
+
+#----------------------------------------------------------------------------------------------------------------
+# 									Misc
+#----------------------------------------------------------------------------------------------------------------
+#watch videos #dmenu
+wt() {
+    find -L ~vv/ ~M/ -maxdepth 5 | egrep ".*\.[mawo].{2,3}"| grep -F "$(find -L  ~vv/ ~M/ -maxdepth 5 | egrep ".*\.[mawo].{2,3}" | cut -d'/' -f5- | sed -E 's/\..{2,5}$//' |\
+    dmenu -i -p "Pick a Video:" -l 25)"|awk -F '.' 'FNR==1&&NF>1'|sed "s/'/\\\'/g" | xargs -I {} mpv {} ;
+}
+
+#watch videos #rofi
+wtr() {
+    find -L ~vv/ ~M/ -maxdepth 5 | grep -v "srt$" | grep -F "$(find -L ~vv/ ~M/ -maxdepth 5 | egrep ".*\.[mawo].{2,3}" | cut -d'/' -f5- | sed -E 's/\..{2,5}$//' |\
+    rofi -lines 20 -width 60 -theme /usr/share/rofi/themes/lb -dmenu -i )" | sed "s/'/\\\'/g" | awk -F '.' 'FNR==1&&NF>1' | xargs -I {} mpv {} ;
+}
+
+#read ebooks #dmenu
+pdf() { find ~dp/ | grep "$( find ~dp/ -name "*.pdf" -exec  basename -s .pdf {} \; | dmenu -i -p "Pick a Book:" -l 20 | sed 's/\[][]/\\\0/g' )" |\
+	awk -F '.' "FNR==1&&NF>1" | sed "s/'/\\\'/g" | xargs -I {} zathura {} ;
+}
+
+#read ebooks #rofi
+pdfr() {
+	find ~dp/ | grep  "$( find ~dp/ -name "*.pdf" -exec  basename -s .pdf {} \; | rofi -lines 20 -width 60 -dmenu -i | sed 's/[][]/\\\0/g' )" |\
+	awk -F '.' "FNR==1&&NF>1" | sed "s/'/\\\'/g" | xargs -I {} zathura {} ;
+}
+#change default OS for next boot
+bootnxt() {  efibootmgr | rg "$(efibootmgr | awk -F'* ' 'NR>3 {print $2}' | dmenu -p "choose")" | sed 's/[^0-9]//g' | xargs -ro  sudo efibootmgr -n  ;}
+
+#download large files from google drive
+gdrive_download () {
+  CONFIRM=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate "https://docs.google.com/uc?export=download&id=$1" -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')
+  wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$CONFIRM&id=$1" -O $2
+  rm -rf /tmp/cookies.txt
+}
+
+#same as above
+gdrive2_download () {
+  CONFIRM=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate "https://drive.google.com/uc?export=download&id=$1" -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')
+  wget --load-cookies /tmp/cookies.txt "https://drive.google.com/uc?export=download&confirm=$CONFIRM&id=$1" -O $2
+  rm -rf /tmp/cookies.txt
+}
+
+#------------------------------------------------------------------------------------------------------------------
+# 								VPN and DoH
+#-----------------------------------------------------------------------------------------------------------------
+
+ws_connect() {
+	[ "$1" = "best" ] && windscribe connect best && return
+	awk '!/*|\[/' ~/vimwiki/ws-vpn-servers.md | dmenu -i -p "Pick your server:" -l 26 | awk 'FNR==1&&NF>1 {print}' | cut -c23-26 | tr -d ' ' | xargs -I {} windscribe connect {}  2>/dev/null ;}
+
+ws() {
+	case "$1" in
+		h) windscribe --help ;;
+		*) if [ "$(pgrep windscribe)" ] ; then
+			 [[ "$1" == "disconnect" ]] && windscribe disconnect && sudo systemctl stop windscribe && return
+			ws_connect "$1"
+		   else (sudo systemctl start windscribe && printf '%20s' 'VPN Server booting.. Give it 10 sec' && sleep 10 && ws_connect)
+		   fi ;;
+	esac
+}
+
+prx() {
+	 typeset -A proxyDNSs nsglobal
+	 proxyDNSs=(
+		 ['NextDNS']="nextdns"
+		 ['Cloudflared']="cloudflared@cloudflared"
+	 )
+	nsglobal=(
+		['google1']="8.8.8.8"
+		['google2']="8.8.4.4"
+		['cloudflare1']="1.1.1.1"
+		['cloudflare2']="1.0.0.1"
+		['cloudflare3']="208.67.222.222"
+		['cloudflare4']="208.67.220.220"
+	)
+	local cmd='sudo systemctl start' somebody=""
+
+	 somebody="$(sudo lsof -i:53 | awk -F' ' 'NR==2 {print $1}')"
+
+
+
+	 if [[ "$1" == "s" ]]; then
+		  if [ "$somebody" ]; then
+			  sudo pkill "$somebody" && (echo -e "# Generated by prx\nnameserver ${nsglobal[cloudflare3]}" | sudo tee /etc/resolv.conf) && return
+		  else
+			  echo "No DNS server running on port 53"
+			  return
+		  fi
+	  elif [ "$1" != "" ]; then
+		  echo -e "invalid argument.\nprx [option]\nOption:\ns -- stop a running server\n"
+		  echo "Don't pass any argument to start a server"
+		  return
+	 fi
+
+	 [ "$somebody" ] && echo -e "$somebody is listening on port 53\nRun with 's' to stop it" && return
+
+	local proxy=""
+	 proxy=$(echo "${(@k)proxyDNSs}" |tr ' ' '\n' | dmenu -i -p "Pick Your proxy server:" -l 2 | tr -d ' ')
+
+	 case $proxy in
+		Cloudflared)\
+			`echo $cmd` "${proxyDNSs[$proxy]}" && echo "Cloudflared started..." &&\
+			(echo -e "#Generated by prx\nnameserver 127.0.0.1" |sudo tee /etc/resolv.conf > /dev/null) ;;
+		NextDNS)\
+			`echo $cmd` "${proxyDNSs[$proxy]}" && sleep 3 && echo -e "NextDNS listening on port 53" ;;
+	esac ;
+	unset proxyDNSs nsglobal
+}
+
+
+#------------------------------------------------------------------------------------------------------------
+# 								JDK Management
+#------------------------------------------------------------------------------------------------------------
+
+
+jset() { local cmd='sudo archlinux-java set' && `echo $cmd` $1 && echo -e "\033[32m $(archlinux-java status | rg 'default' | cut -d'(' -f1) is set" ;}
+
+#select jdk
+cj() {
+# for i in "$(archlinux-java status)"; do
+# echo -e "\033[34m$i";
+# done
+
+case  $1 in
+8)  	  jset java-8-openjdk ;;
+11)    	  jset 11.0.6.j9-adpt  ;;
+12) 	  jset java-12-jdk ;;
+12o)      jset java-12-openjdk ;;
+15)	  jset java-15-jdk ;;
+15fx)     jset zulu-javafx-15.28.51 ;;
+*)   	  echo -e "\033[35mAvailable JDKs and their option.\nChoose the appropriate option:\n
+8    -->  java-8-openkjdk
+11   -->  11.0.6.j9-adpt
+12   -->  java-12-jdk
+12o  -->  java-12-openkjdk
+14   -->  java-14-jdk
+15   -->  java-15-jdk
+15fx -->  zulu-javafx-15.28.51
+* e.g ->  $0 11" ;;
+esac ;}
+
+helper

@@ -1,0 +1,31 @@
+# Find and use input "Microphone" for input
+pcm.usb
+{
+    type hw
+    card Microphone
+}
+pcm.!default
+{
+    type asym
+    playback.pcm
+    {
+    	# Use the dmix plug to allow multiple outputs.
+        type plug
+        slave.pcm "dmix"
+    }
+    capture.pcm
+    {
+        type plug
+        slave.pcm "usb"
+    }
+}
+ctl.!default
+{
+    type pulse
+
+}pcm.mpd {
+    type softvol
+    slave.pcm "default"
+    control.name "MPD Playback Volume"
+    control.card 0
+}

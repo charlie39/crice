@@ -1,0 +1,1 @@
+function wt() { cd (dirname (find ~/ -type f | fzf)) ;}

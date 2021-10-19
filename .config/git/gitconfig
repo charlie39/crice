@@ -1,0 +1,47 @@
+[user]
+	name = charlie39
+	email = iamkg050392@gmail.com
+	signingkey = 37010CF4D8F3879A
+[pull]
+	rebase = true
+[url "git@github.com:"]
+	insteadOf = https://github.com/
+[core]
+	askpass = show
+	eol = lf
+	autocrlf = false
+[color]
+	ui = auto
+[fsck]
+	zeroPaddedFilemode = ignore
+[fetch "fsck"]
+	zeroPaddedFilemode = ignore
+[receive "fsck"]
+	zeroPaddedFilemode = ignore
+[credential]
+	helper = cache
+[remote "origin"]
+	gh-resolved = base
+[commit]
+	gpgsign = true
+[gui]
+	wmstate = normal
+	geometry = 1011x1005+30+29 191 190
+[mergetool "diffmerge"]
+	cmd = /usr/bin/diffmerge --merge --result=\"$MERGED\" \"$LOCAL\" \"$BASE\" \"$REMOTE\"
+	trustExitCode = true
+[merge]
+	conflictstyle = diff3
+	tool = diffmerge
+[diff]
+	tool = diffmerge
+[difftool "diffmerge"]
+	cmd = /usr/bin/diffmerge \"$LOCAL\" \"$REMOTE\"
+[hub]
+	protocol = https
+[rebase]
+	autoStash = true
+[oh-my-zsh]
+	lastVersion = fe84442cac8c426c5333c1defd8557cee931d1c2
+[init]
+	defaultBranch = main

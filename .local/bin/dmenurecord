@@ -1,0 +1,162 @@
+#!/bin/sh
+
+# Usage:
+# `$0`: Ask for recording type via dmenu
+# `$0 screencast`: Record both audio and screen
+# `$0 video`: Record only screen
+# `$0 audio`: Record only audio
+# `$0 kill`: Kill existing recording
+#
+# If there is already a running instance, user will be prompted to end it.
+#Some global variables
+stamp="$(date '+%y%m%d-%H%M-%S')"
+pre="$HOME/Videos/Tutorials/MyStudio"
+screencast="$pre/screencast"
+video="$pre/video-$stamp.mkv"
+audio="$pre/audio-$stamp.flac"
+webcam="$pre/webcam"
+width=360 #width of web camera
+height=200 # height of web camera
+padding=20 #gaps around the web camera
+x=$(((1920 - width) - padding))
+y=$(((1080 - height) - padding))
+
+#uncomment to use filters
+# hflip="[1:v]hflip[flip];[0:v][flip]overlay=x=$x:y=$y"
+
+updateicon() { \
+	echo "$1" > /tmp/recordingicon
+	pkill -RTMIN+9 "${STATUSBAR:-dwmblocks}"
+}
+
+killrecording() {
+    recpid="$(cat /tmp/recordingpid)"
+    videopid="$(cat /tmp/videopid)"
+    # kill with SIGTERM, allowing finishing touches.
+    kill -15 "$recpid"
+    [  -n "$videopid" ] &&  kill -15 "$videopid" && rm -f /tmp/videopid
+    rm -f /tmp/recordingpid
+
+    # even after SIGTERM, ffmpeg may still run, so SIGKILL it.
+    sleep 3
+    kill -9 "$recpid"
+    if [ -f /tmp/stamp ]; then
+        updateicon "🔃🎙"
+        stamp="$(cat /tmp/stamp)"
+        final_merge "$screencast-pro-$stamp.mkv" "$webcam-pro-$stamp.mkv" "$stamp"
+        rm -f /tmp/stamp
+        notify-send  -i "⏺️🎙️"  "FFmpeg finished task!" "screencastvideo merging complete"
+    fi
+    updateicon ""
+    pkill -RTMIN+9 "${STATUSBAR:-dwmblocks}"
+    exit
+}
+
+final_merge() { \
+    ffmpeg -y \
+    -i "$1" \
+    -i "$2" \
+    -filter_complex \
+    "${hflip:- [0:v][1:v]overlay=x=$x:y=$y}" \
+    "$pre/final/final-$3.mkv"
+}
+
+screencast() {
+    [ "$opt" = "-webcam" ] &&  { mpv --title=webcam /dev/video0 & }  && echo $! > /tmp/videopid
+    if [ "$opt" = "-pro" ]; then
+        webcam "$opt" "$width"x"$height"
+         echo $stamp > /tmp/stamp
+    fi
+
+    ffmpeg -y \
+    -f x11grab \
+    -framerate 60 \
+    -i "$DISPLAY" \
+    -r 30 \
+    -f pulse -i default \
+    -c:v h264 -c:a aac \
+    "$screencast$opt-$stamp.mkv" &
+    echo $! > /tmp/recordingpid
+    updateicon "⏺️🎙️"
+    # sleep 60
+    # killrecording
+}
+
+
+video() { ffmpeg \
+    -f x11grab \
+    -s "$(xdpyinfo | grep dimensions | awk '{print $2;}')" \
+    -i "$DISPLAY" \
+    -c:v libx264 -qp 0 -r 30 \
+    "$video" &
+    echo $! > /tmp/recordingpid
+    updateicon "⏺️"
+}
+
+
+webcam() {
+    [ "$sound" ] && ( ffmpeg -f v4l2 \
+    -i /dev/video0 \
+    -f pulse -i default \
+    "$webcam-sound-$stamp.mkv" &
+    echo $! > /tmp/recordingpid
+    updateicon "🎥" ) && exit
+     ffmpeg \
+    -f v4l2 \
+    -i /dev/video0 \
+    -s "${2:- 640x360}" \
+    "$webcam$1-$stamp.mkv" &
+    [ "$1" ] && echo $! > /tmp/videopid || echo $! > /tmp/recordingpid
+    updateicon "🎥"
+}
+
+audio() { \
+    ffmpeg \
+    -f pulse -i default \
+    -c:a flac \
+    "$audio" &
+    echo $! > /tmp/recordingpid
+    updateicon "🎙️"
+}
+
+askrecording() { \
+    choice=$(printf "screencast\\nscreencast(wc)\\nscreencast(wc pro)\\nvideo\\naudio\\nwebcam\\nwebcam(snd)" | dmenu -i -p "Select recording style:")
+    case "$choice" in
+        screencast) screencast;;
+        "screencast(wc)") ( opt="-webcam" && screencast ) ;;
+        "screencast(wc pro)") ( opt="-pro" && screencast ) ;;
+        audio) audio;;
+        video) video;;
+        webcam) webcam;;
+        "webcam(snd)") (sound="yes" && webcam ) ;;
+    esac
+}
+
+asktoend() { \
+    response=$(printf "No\\nYes" | dmenu -i -p "Recording still active. End recording?") &&
+    [ "$response" = "Yes" ] &&  killrecording
+}
+
+
+case "$1" in
+    screencast) screencast;;
+    audio) audio;;
+    video) video;;
+    kill) killrecording;;
+    *) ([ -f /tmp/recordingpid ] && asktoend && exit) || askrecording;;
+esac
+
+# screencast() { \
+# 	ffmpeg -y \
+# 	-f x11grab \
+# 	-framerate 60 \
+# 	-s "$(xdpyinfo | grep dimensions | awk '{print $2;}')" \
+# 	-i "$DISPLAY" \
+# 	-r 30 \
+#  	-c:v h264 -crf 0 -preset ultrafast -c:a aac \
+# 	-f pulse -i default \
+# 	"$HOME/Videos/Tutorials/MyStudio/screencast$wc-$(date '+%y%m%d-%H%M-%S').mkv" &
+# 	echo $! > /tmp/recordingpid
+# 	updateicon "⏺️🎙️"
+#     [ "$wc" ] &&  { mpv /dev/video0 & }  && echo $! > /tmp/videopid
+# }

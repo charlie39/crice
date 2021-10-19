@@ -1,0 +1,3 @@
+#close freezed window via xdotool
+#!/usr/bin/env bash
+xdotool windowclose $(xdotool selectwindow)

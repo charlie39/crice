@@ -1,0 +1,16 @@
+#!/bin/sh
+
+# A dmenu wrapper script for system functions.
+
+cmds="\
+Lock Screen  @i3lock -e -f -i $HOME/Pictures/Wallpapers/Arch-Dark/Kali-linux-themed-arch-1920x1080.jpg
+Leave DWM    @kill -TERM $(pidof -s dwm)
+Refresh DWM  @kill -HUP $(pidof -s dwm)
+Reboot	     @sudo -A reboot
+Shutdown     @sudo -A shutdown -h now
+"
+
+choice="$(echo "$cmds" | cut -d'@' -f 1 | dmenu)" || exit 1
+readonly action="$(echo "$cmds" | grep "^$choice" |  cut -d'@' -f2 )"
+$action
+
