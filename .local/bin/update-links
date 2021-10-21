@@ -1,32 +1,85 @@
 #!/bin/bash
-set -ex
+# set -ex
 if [ "$1"x == "x" ];then
 cat <<END
+    Run it like: update-links <options> [args]
     Options:
-    both ----------- update both scripts(~/.local/bin) and configs (~/.config)
+    both ----------- update both scripts(~/.local/bin) and configs (~/[.config])
     bin|script ----- update only scripts(~/.local/bin)
-    conf|cf -------- update only configs(~/.config)
+    conf|cf -------- update only configs(~/[.config])
+    dry ------------ dry run all
+    dry cf|conf ---- dry run configs
+    dry bin|script - dry run scripts
+
 END
 exit 1;
 fi
 
+binpat="^(bin|script|both)$"
+confpat="^(conf|cf|both)$"
+reject=()
+
+#Put the full path if the dotfile directory
+dotdir=~/packages/repos/crice
+
+#This scripst only deals with scripts/configs in $HOME,$HOME/.config/** and $HOME/.local/bin
+#The path to the dotdir configs/scripts would usually be like $HOME/path/to/dotdir/{.local,.config}
+#And you would want it symlinked to $HOME/{.config/.local}
+#So the excess path in in the first would be the pattern you would want to remove.
+#The path to the files in dotdir is substituted with ${1/$pattern} for the placement of the symlink.
+#So the  pattern to remove would be:
+#pattern="/path/to/dotdir"
+pattern="/packages/repos/crice"
+
+cd $dotdir
+
+arg1=$1
+arg2=$2
+
+if [[ $arg1 = "dry" && $arg2 = "" ]]; then
+    arg1="both"
+    arg2="dry"
+elif [ $arg1 = "dry" ];then
+     arg1=$arg2
+     arg2="dry"
+fi
+[[ $arg2 = "dry" ]] && dry="dry"
+
+rejected() {
+          rejectfile=./.rejected.$1
+          [  -f $rejectfile ] && mv $rejectfile $rejectfile.old
+          echo -e "\t${1~~} ------- $(date)\n" >> $rejectfile
+          echo "${reject[@]}" | tr ' ' '\n' >> $rejectfile
+          echo "Some files are rejected: Check rejected.$1"
+ }
+
 update() {
-        m=${1/packages*crice\/};
-        [ -e $m ] || { ln -s $1 $m && exit 0;}
-        rm $m || unlink $m || { echo "there's something wrong with $m" && exit 1; }
-        ln -s $1 $m;
+        m=${1/$pattern};
+        [ $dry ] && { echo "dry run: ln -s $1 $m" &&  return 0; }
+        if ! [ -f $m ]; then
+            echo "this is real"
+            ln -s $1 $m
+            return
+        else
+            unlink $m || rm $m ||  reject+=( "$m" ) && return;
+            echo "this is real"
+            ln -s $1 $m;
+        fi
     }
 
-binpat="^(bin|script|both)$"
-if [[ $1 =~ $binpat ]] ;then
+if [[ $arg1 =~ $binpat ]] ;then
     for i in $(fd . ~/packages/repos/crice/.local/bin --type f); do
         update "${i}"
     done
+   [ ${#reject[@]} -gt 0 ] && rejected "scripts"
 fi
 
-confpat="^(conf|cf|both)$"
-if [[ $1 =~ $confpat ]]; then
-    for j in $(fd . ~/packages/repos/crice --type f --hidden --exclude .local/bin); do
+unset reject
+if [[ $arg1 =~ $confpat ]]; then
+    for j in $(fd . ~/packages/repos/crice --type f --hidden --exclude .local/bin --exclude .git --exclude .rejected*); do
         update "${j}"
     done
+[ ${#reject[@]} -gt 0 ] && rejected "configs"
 fi
+
+
