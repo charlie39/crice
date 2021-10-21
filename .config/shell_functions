@@ -21,7 +21,7 @@ helper() {
 
 
 #editing scripts and files {local}
-function el { helper ; find  ~pjg/ ~cf/ ~pr/ ~sb/ ~vvt/ ~/vimwiki/ -type f  | fzf  --bind 'ctrl-y:execute-silent(echo {} | xclip -sel p)+abort' -m  --layout reverse --info inline  --preview 'bat --color always -p  {}' --preview-window 60%:border --color 'fg:#bbccdd,fg+:#ddeeff,preview-bg:#000000,border:#332288' | xargs -r nvr --remote-silent ; }
+function el { helper ; find   ~cf/ ~pr/ ~sb/ ~vvt/ ~pjg/ ~/vimwiki/ -type f  | fzf  --bind 'ctrl-y:execute-silent(echo {} | xclip -sel p)+abort' -m  --layout reverse --info inline  --preview 'bat --color always -p  {}' --preview-window 60%:border --color 'fg:#bbccdd,fg+:#ddeeff,preview-bg:#000000,border:#332288' | xargs -r nvr --remote-silent ; }
 # fzf --bind 'f1:execute(less -f  {}),ctrl-y:execute-silent(echo {} | xclip -sel p)+abort'
 #editing scripts and files {global}
 eg() { sudo find /etc /var /usr  -type f  -path /home  -prune -o -print  | fzf  -m --layout reverse --info inline --preview 'bat --color always  {}' --preview-window border --color 'fg:#bbccdd,fg+:#ddeeff,preview-bg:#000000,border:#332288' | xargs -r -I {} sudoedit {} ;}
