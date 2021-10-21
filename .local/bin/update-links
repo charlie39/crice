@@ -1,5 +1,17 @@
 #!/bin/bash
 # set -ex
+#Put the full path of the dotfile directory
+dotdir=~/packages/repos/crice
+reject=()
+#This scripst only deals with scripts/configs in $HOME,$HOME/.config/** and $HOME/.local/bin
+#The path to the dotdir configs/scripts would usually be like $HOME/path/to/dotdir/{.local,.config}
+#And you would want it symlinked to $HOME/{.config/.local}
+#So the excess path in in the first would be the pattern you would want to remove.
+#The path to the files in dotdir is substituted with ${1/$pattern} for the placement of the symlink.
+#So the  pattern to remove would be:
+#pattern="/path/to/dotdir"
+pattern="/packages/repos/crice"
+
 usage() {
 cat << END
 
@@ -18,19 +30,9 @@ b|both      ------------- Dry run all
 END
 exit 1;
 }
-#Put the full path if the dotfile directory
-dotdir=~/packages/repos/crice
-#This scripst only deals with scripts/configs in $HOME,$HOME/.config/** and $HOME/.local/bin
-#The path to the dotdir configs/scripts would usually be like $HOME/path/to/dotdir/{.local,.config}
-#And you would want it symlinked to $HOME/{.config/.local}
-#So the excess path in in the first would be the pattern you would want to remove.
-#The path to the files in dotdir is substituted with ${1/$pattern} for the placement of the symlink.
-#So the  pattern to remove would be:
-#pattern="/path/to/dotdir"
-pattern="/packages/repos/crice"
-reject=()
+
 [ $# -eq 0 ] && usage
-cd $dotdir
+
 while getopts ':d:acsu' opt
 do
     case "$opt" in
@@ -64,17 +66,17 @@ update() {
         m=${1/$pattern};
         (( dry )) && { echo "dry run: ln -s $1 $m" &&  return; }
         if ! [ -f $m ]; then
-            echo "this is inside if"
             ln -s $1 $m
             return
         fi
-        unlink $m || rm $m ||  reject+=( "$m" ) && return;
-        echo "this is outside if"
-        ln -s $1 $m;
+        unlink $m && echo "unliked" || rm $m || { reject+=( "$m" ) && return;}
+        ln -s $1 $m && echo "linked" ;
     }
 
+cd $dotdir
+
 if (( script || all || dryall || dryscript )) ;then
-    for i in $(fd . ~/packages/repos/crice/.local/bin --type f); do
+    for i in $(fd . $dotdir/.local/bin --type f); do
         update "${i}"
     done
    [ ${#reject[@]} -gt 0 ] && rejected "scripts"
@@ -82,7 +84,7 @@ fi
 
 unset reject
 if (( config || all || dryall || dryconfig )); then
-    for j in $(fd . ~/packages/repos/crice --type f --hidden --exclude .local/bin --exclude .git --exclude .rejected*); do
+    for j in $(fd . $dotdir --type f --hidden --exclude .local/bin --exclude .git* --exclude .rejected*); do
         update "${j}"
     done
 [ ${#reject[@]} -gt 0 ] && rejected "configs"
