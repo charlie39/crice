@@ -1,27 +1,25 @@
 #!/bin/bash
 # set -ex
-if [ "$1"x == "x" ];then
-cat <<END
-    Run it like: update-links <options> [args]
-    Options:
-    both ----------- update both scripts(~/.local/bin) and configs (~/[.config])
-    bin|script ----- update only scripts(~/.local/bin)
-    conf|cf -------- update only configs(~/[.config])
-    dry ------------ dry run all
-    dry cf|conf ---- dry run configs
-    dry bin|script - dry run scripts
+usage() {
+cat << END
 
+update-links [-s] [-c] [-b] [-d <[s|sc|script]|[c|cf|config]|[b|both]>]
+
+Options:
+-s          ------------- Only update scripts(~/.local/bin)
+-c          ------------- Only update configs(~/[.config/**]
+-b          ------------- Update both configs and scripts
+-d <arg>    ------------- Dry run. args could be one of 'config','script', 'both' or their short forms
+
+<arg>:
+s|sc|script ------------- Only dry run scripts
+c|cf|config ------------- Only dry run configs
+b|both      ------------- Dry run all
 END
 exit 1;
-fi
-
-binpat="^(bin|script|both)$"
-confpat="^(conf|cf|both)$"
-reject=()
-
+}
 #Put the full path if the dotfile directory
 dotdir=~/packages/repos/crice
-
 #This scripst only deals with scripts/configs in $HOME,$HOME/.config/** and $HOME/.local/bin
 #The path to the dotdir configs/scripts would usually be like $HOME/path/to/dotdir/{.local,.config}
 #And you would want it symlinked to $HOME/{.config/.local}
@@ -30,20 +28,29 @@ dotdir=~/packages/repos/crice
 #So the  pattern to remove would be:
 #pattern="/path/to/dotdir"
 pattern="/packages/repos/crice"
-
+reject=()
+[ $# -eq 0 ] && usage
 cd $dotdir
-
-arg1=$1
-arg2=$2
-
-if [[ $arg1 = "dry" && $arg2 = "" ]]; then
-    arg1="both"
-    arg2="dry"
-elif [ $arg1 = "dry" ];then
-     arg1=$arg2
-     arg2="dry"
-fi
-[[ $arg2 = "dry" ]] && dry="dry"
+while getopts ':d:acsu' opt
+do
+    case "$opt" in
+        a) all=1;;
+        c) config=1;;
+        s) script=1;;
+        d) option="${OPTARG}"
+          dry=1
+          case "$option" in
+              c|cf|config) dryconfig=1;;
+              s|sc|script) dryscript=1;;
+              a|all) dryall=1;;
+              *) echo "Invalid argument: ${OPTARG}";usage;;
+          esac
+          ;;
+        u) usage ;;
+        *) echo "Invalid option: -${OPTARG}";usage;;
+    esac
+done
+shift $((OPTIND-1))
 
 rejected() {
           rejectfile=./.rejected.$1
@@ -55,19 +62,18 @@ rejected() {
 
 update() {
         m=${1/$pattern};
-        [ $dry ] && { echo "dry run: ln -s $1 $m" &&  return 0; }
+        (( dry )) && { echo "dry run: ln -s $1 $m" &&  return; }
         if ! [ -f $m ]; then
-            echo "this is real"
+            echo "this is inside if"
             ln -s $1 $m
             return
-        else
-            unlink $m || rm $m ||  reject+=( "$m" ) && return;
-            echo "this is real"
-            ln -s $1 $m;
         fi
+        unlink $m || rm $m ||  reject+=( "$m" ) && return;
+        echo "this is outside if"
+        ln -s $1 $m;
     }
 
-if [[ $arg1 =~ $binpat ]] ;then
+if (( script || all || dryall || dryscript )) ;then
     for i in $(fd . ~/packages/repos/crice/.local/bin --type f); do
         update "${i}"
     done
@@ -75,11 +81,9 @@ if [[ $arg1 =~ $binpat ]] ;then
 fi
 
 unset reject
-if [[ $arg1 =~ $confpat ]]; then
+if (( config || all || dryall || dryconfig )); then
     for j in $(fd . ~/packages/repos/crice --type f --hidden --exclude .local/bin --exclude .git --exclude .rejected*); do
         update "${j}"
     done
 [ ${#reject[@]} -gt 0 ] && rejected "configs"
 fi
-
-
