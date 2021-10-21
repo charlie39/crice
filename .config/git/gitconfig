@@ -22,6 +22,7 @@
 	helper = cache
 [remote "origin"]
 	gh-resolved = base
+	glab-resolved = base
 [commit]
 	gpgsign = true
 [gui]
