@@ -1,0 +1,79 @@
+#!/usr/bin/env bash
+
+#Connect to wifi with wpa_supplicant
+Interface="wlo1"
+#1. make sure interface is not blocked: rfkill
+sudo rfkill unblock $(rfkill | grep wlan | cut -d' ' -f2)
+
+#2. initiate the interface:
+[ "$(ip link show up | grep $Interface)" ] || sudo ip link set $Interface  up
+#or
+#ifconfig wlo1 up
+
+#3. get SSID: sudo:
+#iwlist scan | grep SSID
+
+#generate asterisk for passphrase prompt
+asterisk_prompt_for_passphrase() {
+    unset passphrase
+    prompt="Enter Passphrase:"
+    while IFS= read -p $prompt -r -s -n 1 char
+    do
+        #Enter - accept passphrase
+        if [[ $char == $'\0' ]] ; then
+            break
+        fi
+        #Backspace
+        if [[ $char == $'\177' ]]; then
+            prompt=$'\b \b'
+            passphrase="${passphrase%?}"
+        else
+            prompt='*'
+            passphrase+="$char"
+        fi
+    done
+}
+#4. generate wpa_supplicant.conf with SSID and passphrase if it doesn't already exist:
+if ! [ -s /etc/wpa_supplicant.conf ]; then
+
+    read -p "It appears no Network is configured. Would you like to configure one(y/N)? " YN
+    [[ $YN =~ [nN] || -z $NY ]] &&  exit 0;
+
+    if [[ $YN =~ [yY] ]];then
+        read -p "Entere the SSID: " SSID
+        asterisk_prompt_for_passphrase
+        wpa_passphrase "$SSID" "$passphrase" | sudo tee -a /etc/wpa_supplicant.conf
+    else
+        echo "Wrong choice"
+        echo "try again"
+        exit 1
+    fi
+fi
+
+if [[$1 =~ [nN] ]]; then
+    read -p "Would you like to generate a new network(y/N)? " YN
+    if [[ $NY =~ [yY] ]]; then
+        read -p "Entere the SSID: " SSID
+        asterisk_prompt_for_passphrase
+        wpa_passphrase "$SSID" "$passphrase" | sudo tee -a /etc/wpa_supplicant.conf
+    elif ! [[ $YN =~ [nN] || -z $YN ]];then
+        echo "Wrong choice.Try again"
+        exit 1;
+    fi
+fi
+
+
+#5. connect to network:
+sudo wpa_supplicant -c/etc/wpa_supplicant.conf -i"$Interface" -B
+
+#6. If dhcp client is running, start it to get the local ip:
+
+! [[ $(pidof dhcpcd) ]] && sudo dhcpcd $Interface
+
+notify-send "WIFI Connection Established!" "Connected to AP. Ping google and check"
+
+
+
+
+
+

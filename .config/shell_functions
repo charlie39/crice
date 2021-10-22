@@ -11,7 +11,8 @@ helper() {
 		else
 			rm $NVIM_LISTEN_ADDRESS
 		fi
-	elif [ "$(nvr --serverlist)" ]; then
+
+    elif [ "$(nvr --serverlist)" ]; then
 		if [ "$(pgrep nvim)" ] ; then
 			NVIM_LISTEN_ADDRESS="$(nvr --serverlist)"
 			EDITOR="nvr --remote-silent --servername $NVIM_LISTEN_ADDRESS"
