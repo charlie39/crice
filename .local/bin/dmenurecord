@@ -30,16 +30,22 @@ updateicon() { \
 }
 
 killrecording() {
-    recpid="$(cat /tmp/recordingpid)"
-    videopid="$(cat /tmp/videopid)"
+    recpid="$(cat /tmp/recordingpid 2>/dev/null)"
+    videopid="$(cat /tmp/videopid 2>/dev/null)"
     # kill with SIGTERM, allowing finishing touches.
-    kill -15 "$recpid"
     [  -n "$videopid" ] &&  kill -15 "$videopid" && rm -f /tmp/videopid
-    rm -f /tmp/recordingpid
-
+    if [ -n "$recpid" ]; then
+        kill -15 "$recpid"
+        rm -f /tmp/recordingpid
     # even after SIGTERM, ffmpeg may still run, so SIGKILL it.
-    sleep 3
-    kill -9 "$recpid"
+        sleep 3
+        kill -9 "$recpid"
+        dunstify  "recording killed!"
+    else
+        dunstify  "no pids found under /tmp"
+        exit 27
+    fi
+
     if [ -f /tmp/stamp ]; then
         updateicon "🔃🎙"
         stamp="$(cat /tmp/stamp)"
@@ -48,8 +54,8 @@ killrecording() {
         notify-send  -i "⏺️🎙️"  "FFmpeg finished task!" "screencastvideo merging complete"
     fi
     updateicon ""
-    pkill -RTMIN+9 "${STATUSBAR:-dwmblocks}"
-    exit
+   [ $DISPLAY ] && pkill -RTMIN+9 "${STATUSBAR:-dwmblocks}"
+    exit 0
 }
 
 final_merge() { \
@@ -67,15 +73,11 @@ screencast() {
         webcam "$opt" "$width"x"$height"
          echo $stamp > /tmp/stamp
     fi
-
-    ffmpeg -y \
-    -f x11grab \
-    -framerate 60 \
-    -i "$DISPLAY" \
-    -r 30 \
-    -f pulse -i default \
-    -c:v h264 -c:a aac \
-    "$screencast$opt-$stamp.mkv" &
+    if [ $DISPLAY ]; then
+        ffmpeg -y -f x11grab -framerate 60 -i "$DISPLAY" -r 30 -f pulse -i default -c:v h264 -c:a aac "$screencast$opt-$stamp.mkv" &
+    else
+        wf-recorder -e -a -f "$screencast$opt-$stamp-opencl.mkv" &
+    fi
     echo $! > /tmp/recordingpid
     updateicon "⏺️🎙️"
     # sleep 60
@@ -120,7 +122,7 @@ audio() { \
 }
 
 askrecording() { \
-    choice=$(printf "screencast\\nscreencast(wc)\\nscreencast(wc pro)\\nvideo\\naudio\\nwebcam\\nwebcam(snd)" | dmenu -i -p "Select recording style:")
+    choice=$(printf "screencast\\nscreencast(wc)\\nscreencast(wc pro)\\nvideo\\naudio\\nwebcam\\nwebcam(snd)" | $DMENU -i -p "Select recording style:")
     case "$choice" in
         screencast) screencast;;
         "screencast(wc)") ( opt="-webcam" && screencast ) ;;
@@ -133,7 +135,7 @@ askrecording() { \
 }
 
 asktoend() { \
-    response=$(printf "No\\nYes" | dmenu -i -p "Recording still active. End recording?") &&
+    response=$(printf "No\\nYes" | $DMENU -i -p "Recording still active. End recording?") &&
     [ "$response" = "Yes" ] &&  killrecording
 }
 

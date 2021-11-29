@@ -43,6 +43,6 @@
 [rebase]
 	autoStash = true
 [oh-my-zsh]
-	lastVersion = fe84442cac8c426c5333c1defd8557cee931d1c2
+	lastVersion = 317cd8f8b314f44e6bcef92aaf1d109dfc028dfc
 [init]
 	defaultBranch = main

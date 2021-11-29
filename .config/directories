@@ -17,6 +17,7 @@ pp	~/Pictures
 ppP	~/Pictures/Personal
 ppT	~/Pictures/Trash
 ppw	~/Pictures/Wallpapers
+ppwg	~/Pictures/Wallpapers/gifs
 ppM	~/Pictures/Memes
 vv	~/Videos
 vvw	~/Videos/WebSeries
@@ -32,7 +33,9 @@ pra ~/packages/repos/arm-aarch64
 prs ~/packages/repos/st
 prv	~/packages/repos/voidrice
 prc	~/packages/repos/crice
+prr	~/packages/repos/river
 prd	~/packages/repos/dwm
+prl	~/packages/repos/dwl
 prdb ~/packages/repos/dwmblocks
 cac	~/.cache
 cacp	~/.cache/paru
@@ -52,7 +55,10 @@ sl	~/.local/lib
 sdp	~/.local/share/password-store
 cf	~/.config
 Cb	~/.config/bash
+Cr ~/.config/river
 Cz	~/.config/zsh
+Ci ~/.config/i3
+Cy ~/.config/sway
 Czo	~/.config/zsh/omz
 Czop	~/.config/zsh/omz/plugins
 Czocp	~/.config/zsh/omz/custom/plugins

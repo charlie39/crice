@@ -24,7 +24,7 @@ alias -g cp="cp -v"
 #some suffix aliases
 alias -s {sh,md,vim,zsh,conf,yml,log,fstab,muttrc,txt,py,java,h,c,js,ts}=vim
 alias -s pdf=zathura
-alias -s {png,jpg,jpeg}=sxiv
+alias -s {png,jpg,jpeg,gif,svg}=imv
 alias -s {mp4,mkv,avi,m3u8}=mpv
 alias -s {mp3,wav,opus,webm}=ffplay
 

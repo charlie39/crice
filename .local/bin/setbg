@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # This script does the following:
-#	Run by itself, set the wallpaper (at X start).
+#	Run by itself, set the wallpaper
 #	If given a file, set that as the new wallpaper.
 #	If given a directory, choose random file in it.
 #	If wal is installed, also generates a colorscheme.
@@ -10,11 +10,53 @@
 bgloc="${XDG_DATA_HOME:-$HOME/.local/share/}/bg"
 
 [ -f "$1" ] && ln -sf "$(readlink -f "$1")" "$bgloc" && notify-send -i "$bgloc" "Changing wallpaper..."
-
 [ -d "$1" ] && ln -sf "$(find "$(readlink -f "$1")" -iregex '.*.\(jpg\|jpeg\|png\|gif\)' -type f | shuf -n 1)" "$bgloc" && notify-send -i "$bgloc" "Random Wallpaper chosen."
 
 # If pywal is installed, use it.
-wal -s -i "$(readlink -f "$bgloc")" -o "${XDG_CONFIG_HOME:-$HOME/.config}/wal/postrun" >/dev/null 2>&1
+# [ $(command -v wal) ] && wal -s -i "$(readlink -f "$bgloc")" -o "${XDG_CONFIG_HOME:-$HOME/.config}/wal/postrun" >/dev/null 2>&1
 
-pidof dwm >/dev/null && xdotool key super+F2
-xwallpaper --zoom "$bgloc"
+# wsetter="oguri"
+wsetter="swaybg"
+
+if [ $DISPLAY ];then
+    xdotool key super+F2
+    # xwallpaper --zoom "$bgloc"
+    xwallpaper --stretch "$bgloc"
+    exit 0
+elif [[ $wsetter = "oguri" ]]; then
+#for animated wallpaper
+    if [ $(pidof oguri) ]; then
+        config=~/.config/oguri/config
+        if [ -s $config ]; then
+            ogurictl output eDP-1  --image "$(sed -En '/^\s*?image.*/{s/\s*?image=\s*?//p}' $config)"
+            exit 0
+        else
+            #fallback
+            ogurictl output eDP-1 --image "$bgloc"
+            exit 0
+        fi
+    elif [ $(command -v oguri) ];then
+        oguri &
+        exit 0
+    fi
+elif [[ $wsetter = "swaybg" ]]; then
+    # if [[ $# -eq 0 ]] ; then
+    #     swaybg -c "#562231" &
+    #     exit 0
+    # fi
+    swaybg -i $bgloc &
+    exit 0
+fi
+#Other colors
+# swaybg -i "$bgloc" &
+# swaybg -c "#562231" &
+# swaybg -c "#332211" &
+# swaybg -c "#111111" &
+# swaybg -c "#223344" &
+# swaybg -c "#345325" &
+# swaybg -c "#564566" &
+# swaybg -c "#687878" &
+# swaybg -c "#122311" &
+# swaybg -c "#667744" &
+# swaybg -c "#933283" &
+# swaybg -c "#543214" &

@@ -1,32 +1,38 @@
 [global]
     monitor = 0
     follow = keyboard
-    geometry = "350x5-0+24"
-    indicate_hidden = yes
-    shrink = yes
-    transparency = 20
-    notification_height = 0
+    height = 2800
+    width = (0,800)
+    indicate_hidden = true
+    shrink = true
+    text_icon_padding = 4
+    notification_limit = 10
     separator_height = 2
-    padding = 0
+    origin = top-right
+    progress_bar = true
+    padding = 1
     horizontal_padding = 8
-    frame_width = 3
+    frame_width = 6
     frame_color = "#282828"
-
+    layer = overlay
+    #transparency = 20 #X11 only
     # Define a color for the separator.
     # possible values are:
     #  * auto: dunst tries to find a color fitting to the background;
     #  * foreground: use the same color as the foreground;
     #  * frame: use the same color as the frame;
     #  * anything else will be interpreted as a X color.
-    separator_color = frame
+    separator_color = auto
 
     # Sort messages by urgency.
     sort = yes
 
     idle_threshold = 120
     font = Monospace 14
+    # font = FiraCode 14
     line_height = 0
     markup = full
+    corner_radius=18
 
     # The format of the message.  Possible variables are:
     #   %a  appname
@@ -38,39 +44,48 @@
     #   %n  progress value if set without any extra characters
     #   %%  Literal %
     # Markup is allowed
-    format = "<b>%s</b>\n%b"
+    # format = "<b>%a</b>\n%b"
+    # format = "%b"
+    # format = "%a"
+    format = "<b>%s</b>\n-%b"
 
-    alignment = left
+    alignment = center
+    vertical_alignment = center
     show_age_threshold = 60
-    word_wrap = yes
+    word_wrap = true
     ellipsize = middle
     ignore_newline = no
     stack_duplicates = true
     hide_duplicate_count = true
-    show_indicators = yes
+    show_indicators = true
     icon_position = left
-    max_icon_size = 40
-    #icon_path = /usr/share/icons/gnome/16x16/status/:/usr/share/icons/gnome/16x16/devices/:/usr/share/icons/Adwaita/256x256/status/
-    sticky_history = yes
+    max_icon_size = 60
+    min_icon_size = 16
+    icon_path = /usr/share/icons/Pop/scalable/status/:/usr/share/icons/Pop/128x128@2x/devices/:/home/charlie/.local/share/icons/hicolor/256x256/apps/:/home/charlie/.local/share/icons/hicolor/128x128/apps/:/usr/share/icons/hicolor/512x512/apps/:/usr/share/icons/hicolor/256x256/apps/:/usr/share/icons/hicolor/128x128/apps/:/usr/share/icons/hicolor/scalable/apps/:/usr/share/icons/Pop/256x256@2x/apps/:/usr/share/icons/Pop/128x128@2x/apps/:/usr/share/icons/Pop/128x128@2x/actions/:/usr/share/icons/Pop/128x128/apps/:/usr/share/icons/Pop/64x64@2x/apps/:/usr/share/icons/Pop/48x48/apps/:/usr/share/icons/Pop/scalable/apps/:/usr/share/icons/Pop/512x512/places/:/usr/share/icons/Pop/512x512/places/:/usr/share/icons/Adwaita/scalable/devices/:/usr/share/icons/Adwaita/265x265/apps/:/usr/share/icons/Adwaita/64x64/apps/:/usr/share/icons/Adwaita/scalable/apps/:
+    sticky_history = true
     history_length = 20
-    dmenu = /usr/bin/dmenu -p dunst:
-    browser = /usr/bin/firefox -new-tab
+    dmenu = "/usr/bin/rofi -show drun"
+    browser = /usr/bin/xdg-open
+    mouse_left_click = close_current
+    mouse_middle_click = context
+    mouse_right_click = open_url
 
     # Always run rule-defined scripts, even if the notification is suppressed
     always_run_script = true
 
     title = Dunst
     class = Dunst
-    startup_notification = false
+    #deprecated
+    # startup_notification = false
     force_xinerama = false
 [experimental]
     per_monitor_dpi = false
 
-[shortcuts]
-    close = ctrl+space
-    close_all = ctrl+shift+space
-    history = ctrl+grave
-    context = ctrl+shift+period
+# [shortcuts]
+#     close = ctrl+space
+#     close_all = ctrl+shift+space
+#     history = ctrl+grave
+#     context = ctrl+shift+period
 
 [urgency_low]
     # IMPORTANT: colors have to be defined in quotation marks.
@@ -82,8 +97,9 @@
     #icon = /path/to/icon
 
 [urgency_normal]
-    background = "#458588"
+    background = "#343588"
     foreground = "#ebdbb2"
+    frame_color = "#21c22f"
     timeout = 5
 
 [urgency_critical]
@@ -110,6 +126,22 @@
 # to "".
 # NOTE: It might be helpful to run dunst -print in a terminal in order
 # to find fitting options for rules.
+[cpu]
+    appname = "cpu"
+    alignment = "left"
+
+[battery]
+    appname = "battery"
+    alignment = "left"
+
+[mbsync]
+    appname = mbsync
+    format = "<b>%a</b>\n<i>%s</i>"
+
+[layout]
+    appname = layout
+    format = <i>%s</i>
+    timeout = 1
 
 #[espeak]
 #    summary = "*"

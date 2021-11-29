@@ -126,15 +126,17 @@ nvim_lsp['pyright'].setup {
 
 --java -----------------------------------------------------------------------------------------------------------------------------------------------
 --[[ require'lspconfig'.jdtls.setup{
-    cmd = { "/usr/bin/java", "-Declipse.application=org.eclipse.jdt.ls.core.id1", "-Dosgi.bundles.defaultStartLevel=4", "-Declipse.product=org.eclipse.jdt.ls.core.product", "-Dlog.protocol=true", "-Dlog.level=ALL", "-Xms1g", "-Xmx2G", "-jar", "vim.NIL", "-configuration", "vim.NIL", "-data", "vim.NIL", "--add-modules=ALL-SYSTEM", "--add-opens java.base/java.util=ALL-UNNAMED", "--add-opens java.base/java.lang=ALL-UNNAMED" },
+    -- cmd = { "/usr/bin/java", "-Declipse.application=org.eclipse.jdt.ls.core.id1", "-Dosgi.bundles.defaultStartLevel=4", "-Declipse.product=org.eclipse.jdt.ls.core.product", "-Dlog.protocol=true", "-Dlog.level=ALL", "-Xms1g", "-Xmx2G", "-jar", "vim.NIL", "-configuration", "vim.NIL", "-data", "vim.NIL", "--add-modules=ALL-SYSTEM", "--add-opens java.base/java.util=ALL-UNNAMED", "--add-opens java.base/java.lang=ALL-UNNAMED" },
+    -- cmd = { "/usr/bin/java", "-Declipse.application=org.eclipse.jdt.ls.core.id1", "-Dosgi.bundles.defaultStartLevel=4", "-Declipse.product=org.eclipse.jdt.ls.core.product", "-Dlog.protocol=true", "-Dlog.level=ALL", "-Xms1g", "-Xmx2G","--add-modules=ALL-SYSTEM" },
+    cmd = { "java-lsp" },
     cmd_env = {
-      JAR = "/usr/share/java/jdtls/plugins/org.eclipse.equinox.launcher_1.6.100.v20201223-0822.jar",
+      JAR = "/usr/share/java/jdtls/plugins/org.eclipse.equinox.launcher_1.6.400.v20210924-0641.jar",
     JDTLS_CONFIG = "/usr/share/java/jdtls/config_linux"
     },
     filetypes = { "java" },
     init_options = {
       -- jvm_args = {}
-      -- workspace = "/home/runner/workspace"
+      workspace = "/home/charlie/trash/java"
     },
     -- root_dir = root_pattern(".git")
 } ]]

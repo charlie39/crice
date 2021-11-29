@@ -1,0 +1,1 @@
+qutebrowser --qt-flag ignore-gpu-blocklist --qt-flag enable-gpu-rasterization --qt-flag enable-native-gpu-memory-buffers --qt-flag num-raster-threads=4 --qt-flag UseSkiaRenderer --qt-flag DnsOverHttpsUpgrade --qt-flag PictureInPicture 

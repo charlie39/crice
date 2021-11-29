@@ -1,91 +1,269 @@
 #!/bin/bash
-# set -ex
+
+: ' Update-sync script to work with the dotfiles of crice.
+ Latest version  of the script will be available from the repo itself (path $GITROOT/.local/bin)
+ This script basically manages to copy|mv|symlink dotfiles to and fro from
+ crice to your existing dotfiles. It also offers dry running of the operations which is helpful when trying to
+ see what actually would happen if you run any operations. Check the --help output to find out usage details.
+
+ This script is available for public, as the case with the crice. Anybody can modify the script according his/her
+ own use case. You would obviously need to modify some of the optins to fit your own system settings.
+ For example the $dotdir to point to this repository in your system, the $exscript and $exconf arrays to exlcude any files
+ that you dont want.
+  '
+
 #Put the full path of the dotfile directory
 dotdir=~/packages/repos/crice
-reject=()
-#This scripst only deals with scripts/configs in $HOME,$HOME/.config/** and $HOME/.local/bin
-#The path to the dotdir configs/scripts would usually be like $HOME/path/to/dotdir/{.local,.config}
-#And you would want it symlinked to $HOME/{.config/.local}
-#So the excess path in in the first would be the pattern you would want to remove.
-#The path to the files in dotdir is substituted with ${1/$pattern} for the placement of the symlink.
-#So the  pattern to remove would be:
-#pattern="/path/to/dotdir"
+
+#Put files and directories' path  to exlcude from operation
+# exscript=("/update-links" "/firefox-sync")
+# exconf=("/profile*")
+: '
+ This scripst only deals with scripts/configs in $HOME,$HOME/.config/** and $HOME/.local/bin
+The path to the dotdir configs/scripts would usually be like $HOME/path/to/dotdir/{.local,.config}
+And you would want it symlinked to $HOME/{.config/.local}
+So the excess path in in the first would be the pattern you would want to remove.
+The path to the files in dotdir is substituted with ${1/$pattern} for the placement of the symlink.
+So the  pattern to remove would be:
+# '
+# pattern="/path/to/dotdir"
 pattern="/packages/repos/crice"
 
 usage() {
 cat << END
 
-update-links [-s] [-c] [-b] [-d <[s|sc|script]|[c|cf|config]|[b|both]>]
+update-links [-s|--symlink]<sc|cf> [-c|--cp]<sc|cf> [-m|--mv]<sc|cf> [-d|--dry-run]<slcf|slsc|cpcf|cpsc|mvcf|mvsc> [-v|--verbose] [-r|--reverse] [-h|--help]
 
 Options:
--s          ------------- Only update scripts(~/.local/bin)
--c          ------------- Only update configs(~/[.config/**]
--b          ------------- Update both configs and scripts
--d <arg>    ------------- Dry run. args could be one of 'config','script', 'both' or their short forms
+-s|--symlink <sc|cf|file1[ file2 ..]>   ---------    Performs symlinks operation
 
 <arg>:
-s|sc|script ------------- Only dry run scripts
-c|cf|config ------------- Only dry run configs
-b|both      ------------- Dry run all
+sc|script                    --------------------    Perform operation on scripts
+cf|config                    --------------------    Perform operation on configs
+file1 file2 ..               --------------------    Symlink only the given file(s)
+-c|--cp <sc|cf>              --------------------    Only update configs(~/[.config/**]
+-m|--mv <sc|cf>              --------------------    Update both configs and scripts
+-d|--dry-run <slcf|slsc|cpcf
+|cpsc|mvcf|mvsc|reverse>     --------------------    Instead of symlinking, move the files
+
+<args>:
+slcf                         --------------------    Dry run symlink of configs
+slsc                         --------------------    Dry run symlink of scripts
+cpcf                         --------------------    Dry run copying of configs
+cpsc                         --------------------    Dry run copying of scripts
+mvcf                         --------------------    Dry run moving of configs
+mvsc                         --------------------    Dry run moving of scripts
+reverse                      --------------------    Dry run --reverse
+
+-v|--verbose                 --------------------    set -x for debugging.
+-h|--help                    --------------------    Dry run. args could be one of 'config','script', 'both' or their short forms
+-r|--reverse                 --------------------    cp/mv from destination to source (i.e. ~/[,.local,.config] to $dotdir)
 END
 exit 1;
 }
-
+OPT=$(getopt -o :hs:c:m:d:vbr --long :help,symlink:,cp:mv:dry-run:verbose,backup,reverse -a -n 'update-links' -- "$@")
 [ $# -eq 0 ] && usage
 
-while getopts ':d:acsu' opt
-do
-    case "$opt" in
-        a) all=1;;
-        c) config=1;;
-        s) script=1;;
-        d) option="${OPTARG}"
-          dry=1
-          case "$option" in
-              c|cf|config) dryconfig=1;;
-              s|sc|script) dryscript=1;;
-              a|all) dryall=1;;
-              *) echo "Invalid argument: ${OPTARG}";usage;;
-          esac
-          ;;
-        u) usage ;;
-        *) echo "Invalid option: -${OPTARG}";usage;;
+eval set -- "$OPT"
+unset OPT
+
+while true;do
+    case $1 in
+        -h|--help) usage ;break;;
+        -s|--symlink) SYMLINK=1
+            case $2 in
+                sc|script) symlinkscript=1;;
+                cf|conf) symlinkconf=1;;
+                *) echo "Invalid option to -s|--symlink: $2"; usage;;
+            esac
+            shift 2
+            continue;;
+        -c|--cp) CP=1
+            case $2 in
+                sc|script) copyscript=1;;
+                cf|conf) copyconf=1;;
+                *) echo "Invalid option to -c|--cp : $2"; usage;;
+            esac
+            shift 2
+            continue;;
+        -m|--mv) MOVE=1
+            case $2 in
+                sc|script) mvscript=1;;
+                cf|conf) mvconf=1;;
+
+                *) echo "Invalid option to -m|--mv: $2";usage;;
+            esac
+            shift 2
+            continue;;
+        -d|--dry-run) DRY=1
+            case $2 in
+                slcf|symlinkconf) drysymconf=1;;
+                slsc|symscript) drysymscript=1;;
+                mvcf|mvconf) drymvconf=1;;
+                mvsc|mvscript) drymvscript=1;;
+                cpcf|cpconf) drycpconf=1;;
+                cpsc|cpscript) drycpscript=1;;
+                reverse) dryreverse=1;;
+                *) echo "Invalid option to -d|--dry-run: $2";usage;;
+            esac
+            shift 2
+            continue;;
+        -v|--verbose) set -x;shift;continue;;
+        -b|--backup) BACKUP=1;shift;continue;;
+        -r|--reverse) REVERSE=1;shift;continue;;
+        --) shift;break;;
     esac
 done
 shift $((OPTIND-1))
+
+#store all the parameterless arguments
+opts=( ${@} )
 
 rejected() {
           rejectfile=./.rejected.$1
           [  -f $rejectfile ] && mv $rejectfile $rejectfile.old
           echo -e "\t${1~~} ------- $(date)\n" >> $rejectfile
           echo "${reject[@]}" | tr ' ' '\n' >> $rejectfile
-          echo "Some files are rejected: Check rejected.$1"
+          echo "Some files are rejected: Check rejected.$1" >&2
  }
+
+dry_run() {
+    echo "dry-run: $1 $2 $3"
+}
+
+#This method handles individual files that you pass as argument
+#$1 -> real or dry; $2 -> operation; $3 -> backup ?
+parameterless_arg() {
+        for i in ${opts[@]}; do
+            srcfile=$(find $dotdir/ -name $i)
+            [ -z $srcfile ] && { echo "No such File or Directory: $i">&2; continue;}
+            [ -d $srcfile ] && { echo "$srcfile is a directory">&2; continue; }
+            if [ -f $srcfile ]; then
+                filepath=${srcfile/$pattern}
+                if [ -f $filepath ];then
+                    ft=$(file --mime-type -b $filepath)
+                    echo "file exist: $filepath - $ft"
+                fi
+                despath=$(dirname ${filepath})
+                if  [ ! -d $despath ]; then
+                    if [ $1 = "dry" ];then
+                        echo "the path doesn't exist.Creating path>&2"
+                        echo "mkdir -p $despath"
+                        dry_run "$2" "$srcfile" "$despath"
+                        continue
+                    fi
+                    mkdir -p $despath || { echo "Couldn't create path: $despath" >&2; continue;}
+                    if [ $3 = "backup" ]; then
+                        $2 --backup $srcfile $despath
+                        continue
+                    fi
+                    $2 $srcfile $despath || echo "Couldn't $2 file : $srcfile">&2
+                else
+                    if [[ $1 = "dry" ]];then
+                        dry_run "$2" "$srcfile" "$despath"
+                        continue
+                    fi
+                    if [[ "$3" = "backup" ]]; then
+                        $2 --backup $srcfile $despath
+                        continue
+                    fi
+                    $2 $srcfile $despath
+                fi
+            fi
+        done
+        exit 0
+}
 
 update() {
         m=${1/$pattern};
-        (( dry )) && { echo "dry run: ln -s $1 $m" &&  return; }
-        if ! [ -f $m ]; then
+        #dry runs are for testing without actually running the operation
+        (( drysymscript || drysymconf )) && dry_run "ln -s" "$1" "$m" && return
+        (( dryreverse )) && { [ -f "$m" ] && dry_run "mv|cp" "$m" "$1" || echo "$m doesn't exist" ; } && return
+        if (( drycpscript || drycpconf ));then
+            [ "${#opts[@]}" -gt 0 ] && parameterless_arg "dry" "cp"
+             dry_run "cp" "$1" "$m"
+             return
+        fi
+        if (( drymvscript || drymvconf ));then
+            [ "${#opts[@]}" -gt 0 ] && parameterless_arg "dry" "mv"
+            dry_run "mv" "$1" "$m"
+            return
+        fi
+        if (( symlinkscript || symlinkconf )); then
+            if  [ -f $m ]; then
+            [ "${#opts[@]}" -gt 0 ] && parameterless_arg "real" "ln -s" && return
+            unlink $m || rm $m || { reject+=( "$m" ) && return;}
+                ln -s $1 $m
+                return
+            fi
             ln -s $1 $m
             return
         fi
-        unlink $m && echo "unliked" || rm $m || { reject+=( "$m" ) && return;}
-        ln -s $1 $m && echo "linked" ;
+        if (( copyscript || copyconf )); then
+            if (( BACKUP )); then
+                [ "${#opts[@]}" -gt 0 ] && parameterless_arg "real" "cp -iuv" "backup"
+                 cp --backup -v "$1" "$m"  || reject+=( "$1" )
+                return
+            fi
+            [ "${#opts[@]}" -gt 0 ] && parameterless_arg "real" "cp"
+            cp -vu "$1" "$m" || reject+=( "$1" )
+            return
+        fi
+        #for moving files make sure all the parent directories exist in destination,
+        if (( mvscript || mvconf )); then
+            if (( REVERSE )); then
+               if [ "${#opts[@]}" -gt 0 ]; then
+                    parameterless_arg "real" "mv -iv"
+                    exit 0
+               fi
+               if [ -f "$m" ];then
+                   mv -v "$m" "$1" || reject+=( "$1" )
+                   return
+               else
+                   echo "$m doesn't exist"
+                   return
+               fi
+            fi
+            if (( BACKUP )); then
+                [ "${#opts[@]}" -gt 0 ] && parameterless_arg "real" "mv -iv" "backup"
+                mv -iv --backup -S .b4crice "$1" "$m" || reject+=( "$1" )
+                return
+            fi
+            [ "${#opts[@]}" -gt 0 ] && parameterless_arg "real" "mv -iv"
+            mv -v "$i" "$m" || reject+=( "$1" )
+        fi
+        return
     }
 
-cd $dotdir
 
-if (( script || all || dryall || dryscript )) ;then
+cd $dotdir || { echo "couldn't cd into $dotdir"; exit 1;}
+
+if (( symlinkscript || mvscript || cpscript || drycpscript || drymvscript || drysymscript || dryreverse )) ;then
     for i in $(fd . $dotdir/.local/bin --type f); do
-        update "${i}"
+        [ -z $exscript ] && { update "${i}"; continue;}
+        for ((j=0;j<${#exscript[@]};j++));do
+            if [ $(echo $i | grep "${exscript[$j]}") ];then
+                exlist="$i"
+                break
+            fi
+        done
+        [ -z $exlist ] && { update "${i}"; continue;}
+        unset exlist
     done
    [ ${#reject[@]} -gt 0 ] && rejected "scripts"
 fi
 
-unset reject
-if (( config || all || dryall || dryconfig )); then
-    for j in $(fd . $dotdir --type f --hidden --exclude .local/bin --exclude .git* --exclude .rejected*); do
-        update "${j}"
+if (( symlinkconf || mvconf || cpconf || drycpconf || drymvconf || drysymconf || dryreverse )) ;then
+    for i in $(fd . $dotdir --type f --hidden --exclude .local/bin --exclude .git --exclude .rejected*); do
+        unset exlist
+        [ -z $exconf ] && { update "${i}"; continue;}
+        for ((j=0;j<${#exconf[@]};j++));do
+            if [ $(echo $i | grep "${exconf[$j]}") ];then
+                exlist="$i"
+                break
+            fi
+        done
+        [ -z $exlist ] && { update "${i}"; continue;}
     done
 [ ${#reject[@]} -gt 0 ] && rejected "configs"
 fi

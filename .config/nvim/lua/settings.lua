@@ -33,7 +33,8 @@ opt('w', 'shiftwidth', indent)            -- Size of an indent
 opt('w', 'list', true)                    -- Show some invisible characters
 -- opt('o', 'undodir', '~/.cache/nvim/undodir')
 opt('o', 'undofile', true)
-opt('w', 'wrap', false)                   -- Disable line wrap
+-- opt('w', 'wrap', false)                   -- Disable line wrap
+opt('w', 'wrap', true)                   -- Disable line wrap
 opt('w', 'timeoutlen', 500)
 opt('o', 'swapfile', false)
 opt('o', 'bg', 'light')

@@ -4,8 +4,8 @@
 # to charge status (🔌 for plugged up, 🔋 for discharging on battery, etc.).
 
 case $BLOCK_BUTTON in
-    2) notify-send "$(cat /sys/class/power_supply/BAT1/uevent)" ;;
-    3) notify-send "🔋 Battery module" "🔋: discharging
+    2) notify-send -a battery -i battery "Battery Info" "$(cat /sys/class/power_supply/BAT1/uevent)" ;;
+    3) notify-send -a battery -i battery "🔋 Battery module" "🔋: discharging
 🛑: not charging
 ♻: stagnant charge
 🔌: charging
@@ -13,21 +13,38 @@ case $BLOCK_BUTTON in
 ❗: battery very low!" ;;
 	6) "$TERMINAL" -e "$EDITOR" "$0" ;;
 esac
-# Loop through all attached batteries.
+
+
+# I have only one battery adapter
 battery="/sys/class/power_supply/BAT1"
-# Get its remaining capacity and charge status.
+
+# Get its remaining Capacity.
 capacity=$(cat "$battery"/capacity)
+
+# Get its capacity and charge status
 status=$(sed "s/Discharging/🔋/;s/Not charging/🛑/;s/Charging/🔌/;s/Unknown/♻️/;s/Full/⚡/" "$battery"/status)
+
 # If it is discharging and 25% or less, we will add a ❗ as a warning and notify send a message
-[ "$capacity" -le 25 ] && [ "$status" = "🔋" ] && warn="❗" && [ "$capacity" -gt 10 ] && notify-send -u normal "Battery low. Plug in a power source"
+if [ "$capacity" -le 25 -a "$status" = "🔋" ]; then
+     warn="❗"
+    [ "$capacity" -gt 10 ] && notify-send -u normal "Battery low. Plug in a power source"
+fi
+
+# Display on stdout
 printf "%s%s%s%%\n" "$status" "$warn" "$capacity"
+
 unset warn
+
+cpufreq() { echo $1 | sudo tee /sys/devices/system/cpu/cpugreq/policy?/scaling_governor &>/dev/null; echo "$(date) --- Set to $1"  ; }
+
 if [ "$capacity" -eq 10 ] && [ "$status" = "🔋" ]; then
-( notify-send -i /usr/share/icons/Adwaita/24x24/status/battery-level-0-symbolic.symbolic.png -u critical -t 1900 "Battery is at $capacity%   Plug in the Power"
-aplay /home/charlie/.local/share/sound/ping_notification.wav ) 2>/dev/null
+    ( notify-send -i /usr/share/icons/Adwaita/24x24/status/battery-level-0-symbolic.symbolic.png -u critical -t 1900 "Battery is at $capacity%   Plug in the Power"
+    aplay /home/charlie/.local/share/sound/ping_notification.wav ) 2>/dev/null
 fi
 #change cpufreq depending power supply
-preset="/sys/devices/system/cpu/cpufreq/policy1/scaling_governor"
-[ "$status" = "🔋" ] && [ "$(cat $preset)" = "performance" ]  && cpufreq powersave  1>>~/cpufreq.log 2>&1
-[[ "$status" =~ (🔌|⚡) ]] && [ "$(cat $preset)" = "powersave" ] && cpufreq performance  1>>~/cpufreq.log 2>&1
+read -r preset < /sys/devices/system/cpu/cpufreq/policy1/scaling_governor
+
+[ "$status" = "🔋" -a "$preset" = "performance" ] && cpufreq "powersave"  1>>~/.cache/cpufreq.log 2>&1
+
+[[ "$status" =~ (🔌|⚡) && "$preset" = "powersave" ]] && cpufreq "performance"  1>>~/.cache/cpufreq.log 2>&1
 

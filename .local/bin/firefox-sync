@@ -9,41 +9,62 @@
 #Run firefox-sync rm|del|delete|remove to remove the profile/cache from memory (/tmp)
 #Dependencies : rsync and libnotify
 
-set -ex
+usage() {
+cat << END
+USAGE: $(basename "$0") [-s [profilename]]  [-d [profilename]] [-v]
 
-if [  "$1"x = "x" ]; then
-    #replace with your own browser profile
-    profile="sy2vakcj.default-esr"
-fi
+OPTIONS:
+-s|--sync    --------------- Mention the profile to sync. If no argument is provided than default profile is used.
+-d|--delete  --------------- Mention the profile to delete. If no argument is provided than default profile is used.
+-v|--verbose --------------- Verbose output.
+END
+}
+OPT=$(getopt -o hp::r::s::v --long help,profile::,remove::,sync::,verbose -a -- "$@")
+eval set -- "$OPT"
+unset OPT
+
+while true; do
+    case $1 in
+        -h|--help) usage;break;;
+        -p|--profile) PROFILE=1
+            PROFILE=$2
+            shift 2
+            continue;;
+        -r|--remove) DEL=1
+            PROFILE=$2
+            shift 2
+            break;;
+        -s|--sync) SYNC=1
+            PROFILE=$2
+            shift 2
+            break;;
+        -v|--verbose) VERBOSE=1
+            set -ex
+            shift
+            continue;;
+        --) break;;
+        '*') echo "Invalid option: $1"
+            usage;;
+    esac
+done
+
 
 profilepath=~/.mozilla/firefox
 cachepath=~/.cache/mozilla/firefox
+while true; do
+   { [ -d $profilepath ] && break;} || read -r -p "It seems the given path doesn't exist.\nEnter the absolute path (or relative path from $HOME) to firfox profile directory " profilepath
+   { [ -d $cachepath ] && break;} || read -r -p "It seems the given path doesn't exist.\nEnter the absolute path (or relative path from $HOME) to firfox cache directory " cachepath
+done
 
-[ -d $profilepath ] || { echo "Enter the absolute path (or relative path from $HOME) to firfox profile directory"; read  profilepath; }
-[ -d $cachepath ] || { echo "Enter the absolute path (or relative path from $HOME) to firfox cache directory"; read  cachepath; }
-
-
-regex="^(remove|rm|delete|del)$"
-
-if [[ "${1}" =~ $regex ]]; then
-    #compgen is bash built in: so only try this with bash
-    # arr=( $(compgen -G /tmp/firefox-\*) ) ||( echo "directory doesn't exist" && exit 1)
-    arr=( $(ls -d /tmp/ff-sync-*) ) ||( echo "directory doesn't exist" && exit 1)
-    #bash array starts at index 0 while zsh starts at 1: so change index for zsh conversion
-    arrfilter=$(echo "${arr[@]}" | sed -E 's/.*ff-sync-(.*default.*)-'"$USER"'.*/\1/')
-    rsync -av --delete --exclude .unpacked "${arr[0]}"/ "${cachepath}"/static-"$arrfilter"
-    rsync -av --delete --exclude .unpacked "${arr[1]}"/ "${profilepath}"/static-"$arrfilter"
-    rm -r ${arr[@]}
-    notify-send "Firefox removed from /tmp" "/tmp cleared of Firefox cache and profile"
-    exit 0
+if [  "$1"x = "x" -o -z $PROFILE ]; then
+    #replace with your own browser profile
+    PROFILE="sy2vakcj.default-esr"
 fi
-
-static=static-${1:-$profile}
-link=${1:-$profile}
-volatileprofile=/tmp/ff-sync-${1:-$profile}-$USER-profile
-volatilecache=/tmp/ff-sync-${1:-$profile}-$USER-cache
+static=static-${PROFILE}
+link=${PROFILE}
+volatileprofile=/tmp/ff-sync-${PROFILE}-$USER-profile
+volatilecache=/tmp/ff-sync-${PROFILE}-$USER-cache
 IFS=
-
 #loading profile
 syncff() {
     cd "$1"
@@ -58,14 +79,34 @@ syncff() {
 
     if [ -e "${link}"/.unpacked ]; then
         rsync -av --delete --exclude .unpacked ./"${link}"/ ./"${static}"
-        notify-send -t 5000 "firefox sync" "rsynced Memory $3 to Static $3"
+        notify-send -i firefox -t 5000 "firefox sync" "rsynced Memory $3 to Static $3"
     else
         rsync -av ./"${static}"/ ./"${link}"
         touch "${link}"/.unpacked
-        notify-send -t 5000 "firefox sync" "rsynced Static $3 to ZRAM $3"
+        notify-send -i firefox -t 5000 "firefox sync" "rsynced Static $3 to ZRAM $3"
     fi
 }
 
-syncff "${profilepath}" "${volatileprofile}" "profile" &
-syncff "${cachepath}"  "${volatilecache}" "cache" &
-exit 0
+delete_profile() {
+    #compgen is bash built in: so only try this with bash
+    # arr=( $(compgen -G /tmp/firefox-\*) ) ||( echo "directory doesn't exist" && exit 1)
+    arr=( $(ls -d /tmp/ff-sync-*) ) ||{ echo "directory doesn't exist"; exit 1;}
+    #bash array starts at index 0 while zsh starts at 1: so change index for zsh conversion
+    arrfilter=$(echo "${arr[@]}" | sed -E 's/.*ff-sync-(.*default.*)-'"$USER"'.*/\1/')
+    rsync -av --delete --exclude .unpacked "${arr[0]}"/ "${cachepath}"/static-"$arrfilter"
+    rsync -av --delete --exclude .unpacked "${arr[1]}"/ "${profilepath}"/static-"$arrfilter"
+    rm -r ${arr[@]}
+    notify-send -i firefox "Firefox removed from /tmp" "/tmp cleared of Firefox cache and profile"
+    exit 0
+}
+
+if (( DEL ));then
+    echo "trying to delete"
+    delete_profile
+fi
+
+if [ $# -eq 0 -o ! -z $SYNC ] ; then
+    syncff "${profilepath}" "${volatileprofile}" "profile" &
+    syncff "${cachepath}"  "${volatilecache}" "cache" &
+    exit 0
+fi

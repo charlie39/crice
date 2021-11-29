@@ -1,0 +1,333 @@
+#!/usr/bin/env bash
+# set -x
+# Imgur script by Bart Nagel <bart@tremby.net>
+# Improvements by Tino Sino <robottinosino@gmail.com>
+# Version 6 or more
+# I release this into the public domain. Do with it what you will.
+# The latest version can be found at https://github.com/tremby/imgur.sh
+
+# API Key provided by Bart;
+# replace with your own or specify yours as IMGUR_CLIENT_ID envionment variable
+# to avoid limits
+
+
+
+# https://imgur.com/#access_token=b3147d85654f0072dd7c63db375352b17b74011c&expires_in=315360000&token_type=bearer&refresh_token=f9d4a436dbbcb8ee1cdf9aeee4ec21d1b28ac336&account_username=charlieCountryman39&account_id=154788881
+# expires_in=315360000
+# token_type=bearer
+# account_username=charlieCountryman39
+# account_id=154788881
+sec=~/.local/share/.imgur_secret
+IMGUR_REFRESH_TOKEN=$(sed -n '/^I.*REFRESH/s/IMGUR.*=//p' $sec)
+IMGUR_ACCESS_TOKEN=$(sed -n '/^I.*ACCESS/s/IMGUR.*=//p' $sec)
+IMGUR_CLIENT_ID=$(sed -n '/^I.*ID/s/IMGUR.*=//p' $sec)
+IMGUR_CLIENT_SECRET=$(sed -n '/^I.*SECRET/s/IMGUR.*=//p' $sec)
+
+#Authorization End point
+# https://api.imgur.com/oauth2/authorize?client_id=$CLIENT_ID&response_type=token
+
+
+# Function to output usage instructions
+function usage {
+	echo "Usage: $(basename $0) [-a] [-h] [<filename|URL> [...]]" >&2
+	echo
+	echo "Upload images to imgur and output their new URLs to stdout. Each one's" >&2
+	echo "delete page is output to stderr between the view URLs." >&2
+	echo
+    echo "pasing -a would authenticate with access token. Default is to upload anonymous"
+    echo "-h would display this help message"
+    echo
+	echo "A filename can be - to read from stdin. If no filename is given, stdin is read." >&2
+	echo
+	echo "If xsel, xclip, pbcopy, or clip is available," >&2
+	echo "the URLs are put on the X selection or clipboard for easy pasting." >&2
+}
+
+type curl &>/dev/null || {
+	echo "Couldn't find curl, which is required." >&2
+	exit 17
+}
+#for json parsing ; enable it for renewing access token for better parsing
+type jq &>/dev/null && JSON=1
+
+if [ "$JSON" ] ; then
+    API=https://api.imgur.com/3/image
+else
+    API=https://api.imgur.com/3/image.xml
+fi
+
+# Function to upload a path
+# First argument should be a content spec understood by curl's -F option
+function upload_anon {
+    #Arguments: $1 -> file/url; $2 -> type - whether image or video; $3 -> title; $4 -> description
+	curl -s -H "Authorization: Client-ID $IMGUR_CLIENT_ID" -H "Expect: " -F "image=$1" -F "title=$2" -F "description=$3" $API
+	# The "Expect: " header is to get around a problem when using this through
+	# the Squid proxy. Not sure if it's a Squid bug or what.
+}
+function upload_auth {
+    #Arguments: $1 -> file/url; $2 -> type - whether image or video; $3 -> title; $4 -> description
+
+    if [[ $AUTHENTICATE ]] ; then
+        curl -s -H "Authorization: Bearer $IMGUR_ACCESS_TOKEN"  -F "$2=$1" -F "title=$3" -F "description=$4" $API
+    else
+        curl -s -H "Authorization: Client-ID $IMGUR_CLIENT_ID" -H "Expect: " -F "$2=$1" -F "title=$3" -F "description=$4" $API
+    fi
+}
+
+
+function delete_file {
+    curl -L -g -H  "Authorization: Bearer $IMGUR_ACCESS_TOKEN" -X DELETE https://api.imgur.com/3/image/$imageHash
+}
+function update_file {
+    #$1 -> title; $2 -> description
+    curl -L -g -H "Authorization: Bearer $IMGUR_ACCESS_TOKEN" -F "title=$1" -F "description=$2" -X POST https://api.imgur.com/3/image/$imageHash
+}
+
+function favourite_file {
+    curl -L -g -H "Authorization: Bearer $IMGUR_ACCESS_TOKEN" -X POST https://api.imgur.com/3/image/$imageHash/favourite
+}
+
+## Account management
+
+# Get account base
+function get_account_base {
+    #$1 -> account-name
+    curl -L -g -H "Authorization: Client-ID $IMGUR_CLIENT_ID" -X POST https://api.imgur.com/3/account/$1
+}
+
+# Refresh_token(renew access token)
+function renew_access_token {
+    curl --location --request POST 'https://api.imgur.com/oauth2/token' \
+    --form "refresh_token=$IMGUR_REFRESH_TOKEN" \
+    --form "client_id=$IMGUR_CLIENT_ID" \
+    --form "client_secret=$IMGUR_CLIENT_SECRET" \
+    --form "grant_type='refresh_token'"
+}
+
+# handler for renewal of account
+function handle_renew_access_token {
+    data=$(renew_access_token)
+    if ! -z $data ;then
+        echo "$data" > ~/imgur.api.response.data
+        if [ "$JSON" ]; then
+            echo "$data" | jq '.data.error'
+            if echo "$data" | jq '.success' = "true" && echo $data | jq '.status' = "200";then
+                NEW_ACCESS_TOKEN=$(echo "$data" | jq '.data.access_token')
+                NEW_REFRESH_TOKEN=$(echo "$data" | jq '.data.refresh_token')
+                #save both to a file
+                if [ $NEW_ACCESS_TOKEN  -a $NEW_REFRESH_TOKEN ];then
+                    echo $NEW_ACCESS_TOKEN > $HOME/.config/imgur.secrets
+                    echo $NEW_REFRESH_TOKEN >> $HOME/.config/imgur.secrets
+                    chmod 600 $HOME/.config/imgur.secrets
+                    return
+                fi
+                echo "there seems to be some error, check the api response"
+            else
+                echo "$data" | jq '.data.error'
+            fi
+        fi
+    fi
+}
+
+function get_user_authorization {
+    curl --cookie-jar /path/to/store/cookie -d "name=confirm&value=true" https://api.imgur.com/oauth2/authorize?client_id=$IMGUR_CLIENT_ID&response_type=token
+
+}
+: '
+OPT=$(getopt -o :hau:d:iv --long :help,auth,upload:,delete:,interactive,verbose -a -- "$@")
+eval set -- "$OPT"
+unset OPT
+ '
+while getopts ':haudiv' arg
+do
+    case $arg in
+        h) usage ;;
+        a) AUTHENTICATE=1 ;;
+        u) UPLOAD=1;;
+        d) DELETE=1;;
+        i) INTERACTIVE=1;;
+        v) VERBOSE=1
+        set -x;;
+        *) echo "Invalid option: -${OPTARG}"
+            usage ;;
+        esac
+done
+# Check arguments
+
+shift $((OPTIND-1))
+#: '
+if (( INTERACTIVE )); then
+PS3="IMGUR>"
+    select i in "Account" "Image/Video" "Gallery"
+    do
+        case $i in
+            "Account")  ACCOUNT=1
+                select j in "Authorize" "Get Base"
+                do
+                    case $j in
+                        Authorize) AUTH=1;;
+                        "Get Base") GETBASE=1;;
+                    esac
+                done
+                break;;
+            "Image/Video") IV=1
+                select j in "Upload" "Update" "Favourite" "Delete" "Quit"
+                do
+                    case $j in
+                        Upload) UPLOAD=1;;
+                        Update) UPDATE=1;;
+                        Favourite) FAV=1;;
+                        Delete) DELETE=1;;
+                        Quit) exit 0;;
+                    esac
+                done
+                break;;
+            "Gallery") GALLERY=1
+                select j in "Subreddit" "Tags" "User"
+                do
+                    case $j in
+                        Subreddit) SUBR=1;;
+                        Tags) TAGS=1;;
+                        User) USR=1;;
+                    esac
+                done
+                break;;
+        esac
+    done
+    # echo "No file specified; reading from stdin" >&2
+    # exec "$0" -
+fi
+# '
+if (( AUTH ));then
+    authdata=get_user_authorization
+    authdata=$(echo "$authdata"| cut -d# -f2 | tr '&' '\n')
+    authdata=$(echo $authdata | tr '&' '\n')
+    echo -e "--------$(date))--------\n" > ~/.imgur.authdata
+    echo "$authdata" >> ~/.imgur.authdata
+    [ $(stat -c %a ~/.imgur.authdata) -ne 600 ] && chmod 600 ~/.imgur.authdata
+fi
+
+if (( UPLOAD )); then
+    IFS=
+    read -r -p "Enter image path or URL of file to upload" PATHURL
+    TYPE="image"
+    if [ -f $PATHURL ] &&[[ $(file --mime-type -b $PATHURL) =~ video* ]];then
+            TYPE="video"
+    fi
+    read -r -p "Title: " TITLE
+    read -r -p "Desc: " DESC
+    if [[ $PATHURL =~ ^https?:// ]]; then
+        upload_auth "$PATHURL" $TYPE "$TITLE" "$DESC"
+    else
+        upload_auth "@$PATHURL" $TYPE "$TITLE" "$DESC"
+    fi
+fi
+
+
+# Check curl is available
+clip=""
+errors=false
+
+# Loop through arguments
+while [ $# -gt 0 ]; do
+	f="$1"
+	shift
+
+	# Upload the image
+            # URL -> imgur
+	if [[ "$f" =~ ^https?:// ]]; then
+        if [[ "$AUTHENTICATE" ]] ;then
+            response=$(upload_auth "$f") 2>/dev/null
+        else
+		    response=$(upload_anon "$f") 2>/dev/null
+        fi
+	else
+		# File -> imgur
+		# Check file exists
+		if [ "$f" != "-" -a ! -f "$f" ]; then
+			echo "File '$f' doesn't exist; skipping" >&2
+			errors=true
+			continue
+		fi
+        if [[ "$AUTHENTICATE" ]] ;then
+            response=$(upload_auth "@$f") 2>/dev/null
+        else
+            response=$(upload_anon "@$f") 2>/dev/null
+        fi
+	fi
+
+	if [ $? -ne 0 ]; then
+		echo "Upload failed: $f" >&2
+		errors=true
+		continue
+    elif ! [ "$JSON" ]; then
+        if echo "$response" | grep -q 'success>="0"'; then
+            echo "Error message from imgur:" >&2
+            msg="${response##*<error>}"
+            statuscode="${response##*<status>}"
+            statuscode="${statuscode%%</status>*}"
+            echo "${msg%%</error>*}" >&2
+            errors=true
+            if [[ $statuscode =~ 40[013] ]];then
+                handle_renew_access_token
+                shift -1
+                continue
+            fi
+            continue
+        fi
+        # Parse the response and output our stuff
+        url="${response##*<link>}"
+        url="${url%%</link>*}"
+        delete_hash="${response##*<deletehash>}"
+        delete_hash="${delete_hash%%</deletehash>*}"
+        echo "${url/http:/https:}"
+        echo "Delete page: https://imgur.com/delete/$delete_hash" >&2
+    else
+        if echo "$response" | jq  '.success' | grep -q false; then
+            echo "Error message from imgur:" >&2
+            msg="$(echo "$response" | jq '.error')"
+            statuscode=$(echo "$response" | jq '.status')
+            echo "Error:$msg" >&2
+            error=true
+            if [[ $statuscode =~ 40[013] ]];then
+                handle_renew_access_token
+                shift -1
+                continue
+            fi
+            continue
+        fi
+        url=$( echo "$response" | jq '.data.link')
+        url=${url//\"/}
+        delete_hash=$(echo "$response" | jq '.data.deletehash')
+        echo "${url}"
+        echo "Delete page: https://imgur.com/delete/${delete_hash//\"/}" >&2
+    fi
+
+
+	# Append the URL to a string so we can put them all on the clipboard later
+	clip+="$url"
+	if [ $# -gt 0 ]; then
+		clip+=$'\n'
+	fi
+done
+
+#deleting
+
+# Put the URLs on the clipboard if we can
+if [ $(pidof wl-copy) ]; then
+    echo -n $clip | wl-copy
+elif type xclip &>/dev/null; then
+	echo -n $clip | xclip
+elif type xsel &>/dev/null; then
+	echo -n $clip | xsel -i
+elif type pbcopy &>/dev/null; then
+	echo -n $clip | pbcopy
+elif type clip &>/dev/null; then
+	echo -n $clip | clip
+else
+	echo "Haven't copied to the clipboard: no xsel or xclip" >&2
+fi
+
+if $errors; then
+	exit 1
+fi

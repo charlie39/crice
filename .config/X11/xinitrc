@@ -8,8 +8,8 @@
 # screen) and so they are needed there. To prevent doubling up commands, I
 # source them here with the line below.
 
-
-[ -f "${XDG_CONFIG_HOM:-$HOME/.config}/X11/xprofile" ] && . "$XDG_CONFIG_HOME/X11/xprofile" 		#for i3 and dwm
+#startup pograms
+[ -f "${XDG_CONFIG_HOM:-$HOME/.config}/startup" ] && . "${XDG_CONFIG_HOME:-$HOME/.config}/startup" 		#for i3 and dwm
 
 # Your default LARBS WM is determined in your `~/.profile` on login.  Here we
 # run the proper command to run when the graphical environment starts.
@@ -19,3 +19,7 @@ ssh-agent dwm
 # ssh-agent i3
 # export STATUSBAR="i3blocks" # Uncomment this line when using i3.
 # ssh-agent bspwm
+
+#Wayland
+# ssh-agent river
+# ssh-agent dwl

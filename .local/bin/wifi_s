@@ -1,12 +1,29 @@
 #!/usr/bin/env bash
+# set -x
 
 #Connect to wifi with wpa_supplicant
+#Your wifi interface:
 Interface="wlo1"
-#1. make sure interface is not blocked: rfkill
-sudo rfkill unblock $(rfkill | grep wlan | cut -d' ' -f2)
+
+#Your DHCP client:can be dhclient or dhcpcd or anything
+dhcpclient="dhcpcd"
+
+ADDR=192.168.43.168
+
+#path to your wpa_supplicant.conf
+WPA_SUPPLICANTCONF=$HOME/.config/wpa/wpa_supplicant.conf
+# mkdir -p "$WPA_SUPPLICANTCONF"
+
+if [ "$1" == "s" ]; then
+    sudo wpa_cli terminate $Interface
+    sudo pkill dhcpcd
+    exit 0
+fi
+#1. make sure interface is not blocked:
+sudo rfkill unblock "$(rfkill|grep wlan|cut -d' ' -f2)"
 
 #2. initiate the interface:
-[ "$(ip link show up | grep $Interface)" ] || sudo ip link set $Interface  up
+[ "$(grep $Interface <(ip link show up ))" ] || sudo ip link set $Interface  up
 #or
 #ifconfig wlo1 up
 
@@ -16,11 +33,12 @@ sudo rfkill unblock $(rfkill | grep wlan | cut -d' ' -f2)
 #generate asterisk for passphrase prompt
 asterisk_prompt_for_passphrase() {
     unset passphrase
-    prompt="Enter Passphrase:"
-    while IFS= read -p $prompt -r -s -n 1 char
+    prompt="Enter Passphrase: "
+    while IFS= read -r -p "$prompt" -s -n 1 char
     do
         #Enter - accept passphrase
         if [[ $char == $'\0' ]] ; then
+            echo
             break
         fi
         #Backspace
@@ -28,21 +46,23 @@ asterisk_prompt_for_passphrase() {
             prompt=$'\b \b'
             passphrase="${passphrase%?}"
         else
-            prompt='*'
+            prompt="*"
             passphrase+="$char"
         fi
     done
 }
 #4. generate wpa_supplicant.conf with SSID and passphrase if it doesn't already exist:
-if ! [ -s /etc/wpa_supplicant.conf ]; then
+if ! [ -s "$WPA_SUPPLICANTCONF" ]; then
 
-    read -p "It appears no Network is configured. Would you like to configure one(y/N)? " YN
-    [[ $YN =~ [nN] || -z $NY ]] &&  exit 0;
-
-    if [[ $YN =~ [yY] ]];then
-        read -p "Entere the SSID: " SSID
+    read -r -p "It appears no Network is configured. Would you like to configure one(y/N)? " YN
+    [[ $YN =~ [nN] || -z $YN ]] &&  exit 0;
+    if [[ $YN =~ [yY] ]]; then
+        read -r -p "Would you like to control wpa_supplicant with its frontend tool wpa_cli?(y/N) " YesNo
+        [[ $YesNo =~ [Yy] ]] && echo -e "ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=$USER" >  "$WPA_SUPPLICANTCONF"
+        read -r -p "Entere the SSID: " SSID
         asterisk_prompt_for_passphrase
-        wpa_passphrase "$SSID" "$passphrase" | sudo tee -a /etc/wpa_supplicant.conf
+        wpa_passphrase "$SSID" "$passphrase" >>  "$WPA_SUPPLICANTCONF"
+        chmod 600 "$WPA_SUPPLICANTCONF"
     else
         echo "Wrong choice"
         echo "try again"
@@ -50,30 +70,32 @@ if ! [ -s /etc/wpa_supplicant.conf ]; then
     fi
 fi
 
-if [[$1 =~ [nN] ]]; then
-    read -p "Would you like to generate a new network(y/N)? " YN
-    if [[ $NY =~ [yY] ]]; then
-        read -p "Entere the SSID: " SSID
+if [[ $1 =~ [nN] ]]; then
+    read -r -p "Would you like to generate a new network(y/N)? " YN
+    if [[ $YN =~ [yY] ]]; then
+        read -r -p "Entere the SSID: " SSID
         asterisk_prompt_for_passphrase
-        wpa_passphrase "$SSID" "$passphrase" | sudo tee -a /etc/wpa_supplicant.conf
-    elif ! [[ $YN =~ [nN] || -z $YN ]];then
+        read -r -p "Would you like to control wpa_supplicant with its frontend tool wpa_cli?(y/N) " YesNo
+        [[ $YesNo =~ [Yy] ]] && echo -e "ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=$USER" >  "$WPA_SUPPLICANTCONF"
+        wpa_passphrase "$SSID" "$passphrase" >> "$WPA_SUPPLICANTCONF"
+    elif ! [[ $YN =~ [nN] || -z $YN ]]; then
         echo "Wrong choice.Try again"
         exit 1;
     fi
 fi
 
+#you may require to mention a driver wrapper with -D nl80211,wext. Refer wpa_supplicant(8)
+[ "$(sudo wpa_supplicant -c "$WPA_SUPPLICANTCONF" -i"$Interface" -B)" ] || echo "WPA Supplicant returned error $?"
 
-#5. connect to network:
-sudo wpa_supplicant -c/etc/wpa_supplicant.conf -i"$Interface" -B
+echo "WIFI Connection Established!.Checking DHCP..."
 
-#6. If dhcp client is running, start it to get the local ip:
-
-! [[ $(pidof dhcpcd) ]] && sudo dhcpcd $Interface
-
-notify-send "WIFI Connection Established!" "Connected to AP. Ping google and check"
-
-
-
-
-
-
+#6. If dhcp client is not running, start it to get a lease:
+if [[ $(pidof $dhcpclient) ]]; then
+    sudo $dhcpclient -k $Interface
+    sudo $dhcpclient $Interface
+else
+    sudo $dhcpclient $Interface
+fi
+echo "starting dhcp client ..."
+echo "dhcpcd started!"
+ping google.com -c 1 &>/dev/null && notify-send "Network is up" "enjoy"

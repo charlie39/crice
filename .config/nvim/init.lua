@@ -1,16 +1,16 @@
 -- neovim config
-
 --default options
 vim.g.mapleader = ','
 vim.wo.number=true
 vim.wo.rnu=true
 vim.cmd [[set bg=light]]
-
 --shortcuts
 local cmd, fn, g, exe  =  vim.cmd, vim.fn, vim.g, vim.api.nvim_command
-cmd 'colorscheme base16-black-metal-immortal'
+-- cmd 'colorscheme base16-black-metal-immortal'
+cmd 'colorscheme base16-3024'
 local opt = require('utils').opt
-
+-- set guifont for gui vim
+opt('o','guifont','FiraCode Nerd Font:h12')
 local install_path = fn.stdpath('data')..'/site/pack/packer/opt/packer.nvim'
 if fn.empty(fn.glob(install_path)) > 0 then
   fn.system({'git', 'clone', 'https://github.com/wbthomason/packer.nvim', install_path})
@@ -101,8 +101,9 @@ exe 'packadd telescope-fzy-native.nvim'
 exe 'packadd fzf.vim'
 
 --completer
-exe 'packadd nvim-compe'
--- exe 'packadd YouCompleteMe'
+-- exe 'packadd nvim-compe'
+exe 'packadd YouCompleteMe'
+require('ycmkeymap')
 
 ---| File Mgr |---
 exe 'packadd rnvimr'
@@ -213,4 +214,4 @@ vim.tbl_map(function(c) cmd(string.format('autocmd %s', c)) end, {
   'BufWritePost *sxhkdrc !pkill -USR1 sxhkd',
 })
 -- cmd 'if &diff then highlight! link DiffText MatchParent end'
-
+require('config.neovide')

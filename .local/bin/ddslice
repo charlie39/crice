@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+# set -x
+
+usage() {
+cat << END
+
+USAGE: ddslice -s <seek> -c <count> INFILE OUTFILE
+
+OPTIONS:
+-s      ----- Bytes to skip
+-c      ----- Bytes to write
+INFILE  ----- The input file
+OUTFILE ----- The output file
+END
+}
+
+while getopts ':hs:c:' arg
+do
+    case $arg in
+        s) SKIP=${OPTARG} ;;
+        c) COUNT=${OPTARG} ;;
+        S) STATUS="progress" ;;
+        h) echo "This script uses dd to slice files based on given seek and count in bytes"
+            usage ;;
+        *) echo "Invalid option: -${OPTARG}"
+            usage ;;
+    esac
+done
+shift $((OPTIND-1))
+
+echo "dd bs=1 skip=$SKIP count=$COUNT if=$1 of=$2 status=progress"

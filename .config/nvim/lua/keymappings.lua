@@ -3,7 +3,7 @@ local map = utils.map
 
 
 
-map('n', '<Esc>s', '<cmd>luafile $MYVIMRC<cr>')
+map('n', '<leader>s', '<cmd>luafile $MYVIMRC<CR>')
 
 --tab traversal
 map('n', 'tt', ' <cmd>tabnew<CR>')
@@ -66,6 +66,7 @@ map('n', '<leader>F', '<cmd>Files<CR>')
 map('n', '<leader>G', '<cmd>Commits<CR>')
 map('n', '<leader>r', '<cmd>Rg<CR>')
 map('n', '<leader>b', '<cmd>ls<CR>:buffer<space>')
+map('n', '<leader><leader>c', '<cmd>Colors<CR>')
 
 -------------------- MAPPINGS ------------------------------
 map('', '<leader>y', '"+y')
@@ -91,7 +92,7 @@ map('n', '<leader>x', '<cmd>conf qa<CR>')
 map('t', '<ESC>', '&filetype == "fzf" ? "\\<ESC>" : "\\<C-\\>\\<C-n>"' , {expr = true})
 map('t', 'jk', '<ESC>', {noremap = false})
 map('n','Q','zq')
-map('n','<leader>c', '<cmd>w! <bar> !compiler <c-r>%<CR>')
+map('n','<leader>c', '<cmd>w! <bar> !compiler %<CR>')
 map('n', '<leader>p', ':!opout <c-r>%<CR>')
 --cool mappings
 

@@ -1,9 +1,13 @@
 # Profile file. Runs on login. Environmental variables are set here(Though most of them are set in $XDG_CONFIG_HOME/ENV)
 # Adds ~/.local/bin` to $PATH
 export PATH="$(du "$HOME/.local/bin/" | cut -f2 | tr '\n' ':' | sed 's/:*$//'):$PATH"
-
+#X=X server; W=Wayland
+export XW="W"
 #export XDG environment variables from '~/.config/ENV'
 eval "$(sed 's/^[^#].*/export &/g;t;d' ~/.config/ENV)"
+
+#exort wayland specific configs
+[[ $XW = "W" ]] && eval "$(sed 's/^[^#].*/export &/g;t;d' ~/.config/wayland/WAYLAND_ENV)"
 #
 # This is the list for lf icons:
 export LF_ICONS="di=📁:\
@@ -69,12 +73,20 @@ ex=🎯:\
 
 [ ! -f "$XDG_CONFIG_HOME/shortcutrc" ] && ref >/dev/null 2>&1
 
-# Start graphical server on tty1 if not already running.
-[ "$(tty)" = "/dev/tty1" ] && ! ps -e | grep -qw Xorg && exec startx $XINITRC
-
+# Start X server or Wayland compositor on tty1 if not already running.
+if [ "$(tty)" = "/dev/tty1" ]; then
+   if ! ps -e | grep -qw Xorg ; then
+       if [[ "$XW" = "X" ]]; then
+            exec startx $XINITRC
+        elif ! [ "$(pidof river)" ]; then
+           # exec ssh-agent river
+           # exec ssh-agent sway
+           exec ssh-agent wayfire
+           # exec dwl -s 'source ~/.config/startup'
+       fi
+   fi
+fi
 # Switch escape and caps if tty and no passwd required:
-sudo -n loadkeys "$XDG_DATA_HOME"/larbs/ttymaps.kmap 2>/dev/null
+# sudo -n loadkeys "$XDG_DATA_HOME"/larbs/ttymaps.kmap 2>/dev/null
 #Add ssh key to ssh agent
 # [ -v SSH_AUTH_SOCK ] && ssh-add ~/.ssh/git
-# ssh-add ~/.ssh/git
-

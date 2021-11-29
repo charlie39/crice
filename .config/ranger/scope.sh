@@ -52,7 +52,8 @@ if [ "$preview_images" = "True" ]; then
         image/svg+xml)
            convert "$path" "$cached" && exit 6 || exit 1;;
         image/*)
-            exit 7;;
+            exit 7;; # original
+            # imv "$path" "$cached"
         # Image preview for video, disabled by default.:
         ###video/*)
         ###    ffmpegthumbnailer -i "$path" -o "$cached" -s 0 && exit 6 || exit 1;;
@@ -117,4 +118,4 @@ case "$mimetype" in
         try mediainfo "$path" && { dump | trim | sed 's/  \+:/: /;';  exit 5; } || exit 1;;
 esac
 
-exit 1
+egiftasfxit 1

@@ -63,25 +63,23 @@ visualizer_in_stereo = yes
 ## that sane values start with >=10.
 ##
 #
-visualizer_sync_interval = 15
-#
-##
+#visualizer_sync_interval = 15 #This is deprecated
 ## Note: To enable spectrum frequency visualization you need to compile ncmpcpp
 ## with fftw3 support.
 ##
 #
 ## Available values: spectrum, wave, wave_filled, ellipse.
 ##
-visualizer_type = ellipse
+visualizer_type = spectrum
+# visualizer_look = ●卐
+# visualizer_look = 卐
 #
-#visualizer_look = ●卐
-#visualizer_look = 卐
-#
-visualizer_color = blue, cyan, green, yellow, magenta, red
+# visualizer_color = blue, cyan, green, yellow, magenta, red
 #
 ## Alternative subset of 256 colors for terminals that support it.
 ##
-#visualizer_color = 41, 83, 119, 155, 185, 215, 209, 203, 197, 161
+# visualizer_color =  41,46, 83, 119, 99, 155, 185, 215, 209, 203, 197, 161
+visualizer_color =  125, 155,18, 41, 53, 83, 119,  99, 155, 185, 215, 209, 203, 197, 161
 #
 ##### system encoding #####
 ##
@@ -175,40 +173,40 @@ message_delay_time = 1
 ## Note: colors can be nested.
 ##
 #
-song_list_format = {$4%a - }{%t}|{$8%f$9}$R{$3(%l)$9}
+song_list_format = {$(41)%a - }{%t}|{$8%f$(end)}$R{$3(%l)$9}
 #
-song_status_format = $b{{$8"%t"}} $3by {$4%a{ $3in $7%b{ (%y)}} $3}|{$8%f}
+song_status_format = $b{{$(42)"%t"$(end)}} $(28)by$(end) {$(227)%a$(end){ $(168)in$(end) $(89)%b{ (%y)}} $3}|{$8%f}
 #
-song_library_format = {%n - }{%t}|{%f}
+song_library_format = $(167){%n - }{%t}|{%f}$(end)
 #
 alternative_header_first_line_format = $b$1$aqqu$/a$9 {%t}|{%f} $1$atqq$/a$9$/b
 #
 alternative_header_second_line_format = {{$4$b%a$/b$9}{ - $7%b$9}{ ($4%y$9)}}|{%D}
 #
-current_item_prefix = $(cyan)$r$b
+current_item_prefix = $(101)$r$b
 #
-current_item_suffix = $/r$(end)$/b
+current_item_suffix = $/r$(223)$/b
 #
-current_item_inactive_column_prefix = $(magenta)$r
+current_item_inactive_column_prefix = $(139)$r
 #
-current_item_inactive_column_suffix = $/r$(end)
+current_item_inactive_column_suffix = $/r$(143)
 #
-#now_playing_prefix = $b
+now_playing_prefix = $b$4
 #
 #now_playing_suffix = $/b
 #
-#browser_playlist_prefix = "$2playlist$9 "
+# browser_playlist_prefix = "$3playlist$9 "
 #
-#selected_item_prefix = $6
+selected_item_prefix = $(77)
 #
-#selected_item_suffix = $9
+selected_item_suffix = $(end)
 #
 #modified_item_prefix = $3> $9
 #
 ##
 ## Note: attributes are not supported for the following variables.
 ##
-#song_window_title_format = {%a - }{%t}|{%f}
+# song_window_title_format = $(197){%a - }{%t}|{%f}$(end)
 ##
 ## Note: Below variables are used for sorting songs in browser.  The sort mode
 ## determines how songs are sorted, and can be used in combination with a sort
@@ -218,7 +216,7 @@ current_item_inactive_column_suffix = $/r$(end)
 #
 #browser_sort_mode = name
 #
-#browser_sort_format = {%a - }{%t}|{%f} {(%l)}
+browser_sort_format = $(143){%a - }$(end)$(198){%t}|{%f}$(end) $(162){(%l)}$(end)
 #
 ##### columns settings #####
 ##
@@ -255,7 +253,7 @@ current_item_inactive_column_suffix = $/r$(end)
 ##   available.
 ##
 #
-#song_columns_list_format = (20)[]{a} (6f)[green]{NE} (50)[white]{t|f:Title} (20)[cyan]{b} (7f)[magenta]{l}
+song_columns_list_format = (20)[227]{a} (6f)[]{NE} (50)[125]{t|f:Title} (20)[22]{b} (7f)[163]{l}
 #
 ##### various settings #####
 #
@@ -310,8 +308,8 @@ browser_display_mode = columns
 ## Note: You can specify third character which will be used to build 'empty'
 ## part of progressbar.
 ##
-# progressbar_look = 🎵🎶->
-progressbar_look =🎵>
+# progressbar_look = 🎵🎶>
+progressbar_look =❯
 
 #
 ## Available values: database, playlist.
@@ -320,7 +318,7 @@ progressbar_look =🎵>
 #
 ## Available values: classic, alternative.
 ##
-#user_interface = classic
+user_interface = classic
 #
 #data_fetching_delay = yes
 #
@@ -388,7 +386,8 @@ media_library_albums_split_by_date = no
 ##
 ## Note: You can define startup screen by choosing screen from the list above.
 ##
-startup_screen = media_library
+# startup_screen = media_library
+startup_screen = playlist
 #
 ##
 ## Note: You can define startup slave screen by choosing screen from the list
@@ -467,7 +466,7 @@ ignore_leading_the = yes
 #
 #search_engine_default_search_mode = 1
 #
-external_editor = vim
+external_editor = nvim
 #
 ## Note: set to yes if external editor is a console application.
 ##
@@ -505,35 +504,36 @@ use_console_editor = yes
 #
 #colors_enabled = yes
 #
-empty_tag_color = magenta
+empty_tag_color = 40
 #
-#header_window_color = magenta
+header_window_color = 197
+# header_window_color = 197_227
 #
 #volume_color = default
 #
-#state_line_color = default
+state_line_color = 89
 #
-#state_flags_color = default:b
+state_flags_color = 47:b
 #
-main_window_color = white
+main_window_color = 203_233
 #
 #color1 = white
 #
 #color2 = green
 #
-progressbar_color = black:b
+progressbar_color = 1:b
+# 19 = dark blue
+progressbar_elapsed_color = 22:b
 #
-progressbar_elapsed_color = blue:b
+statusbar_color = 89
 #
-statusbar_color = red
+statusbar_time_color = 58:b
 #
-statusbar_time_color = cyan:b
+player_state_color = 209:b
 #
-#player_state_color = default:b
+alternative_ui_separator_color = 227:b
 #
-#alternative_ui_separator_color = black:b
+window_border_color = 77
 #
-#window_border_color = green
-#
-#active_window_border = red
+active_window_border = 89
 #

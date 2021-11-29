@@ -6,6 +6,7 @@ cfaz ~/.config/zsh/zsh_aliasrc
 cfA ~/.config/alacritty/alacritty.yml
 cfb ~/.config/bash/.bashrc
 cff ~/.config/fish/config.fish
+cfF ~/.config/foot/foot.ini
 cfp ~/.config/zsh/.zprofile
 cfm ~/.config/mutt/muttrc
 cfm2 ~/.config/mutt/accounts/2-secondary.muttrc
@@ -18,6 +19,9 @@ cfmc ~/.config/ncmpcpp/config
 cfk ~/.config/sxhkd/sxhkdrc
 cfkt ~/.config/kitty/kitty.conf
 cfi ~/.config/i3/config
+cfr ~/.config/river/init
+cfw ~/.config/wayfire.ini
+cfy ~/.config/sway/config
 cf3b ~/.config/i3blocks/config
 cfs ~/.config/shortcutrc
 cfS ~/.local/bin/shortcuts

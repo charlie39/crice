@@ -10,6 +10,7 @@ set wildmenu
 set wildstyle=popup
 set scrolloff=4
 set ignorecase
+set number relativenumber
 set smartcase
 set nohlsearch
 set incsearch
@@ -23,9 +24,12 @@ map <C-l> <C-w>l
 map <C-o> <C-w>o
 map <C-s> <C-w>s
 map <C-v> <C-w>v
-
+map <C-x> <C-w>x
+"map <C-,> <C-w><
+"map <C-.> <C-w>>
+map <A-t> :tabnext<CR>
 map R :restart<CR>
-map x :!sxiv -ft * 2>/dev/null &<CR>
+map x :!imv -ft * 2>/dev/null &<CR>
 nnoremap o :file &<cr>
 map E :!$EDITOR %f<CR>
 map mkd :mkdir<space>
@@ -66,8 +70,10 @@ filetype *.zip,*.rar,*.tar.gz ext %f
 fileviewer *.[1-8] man ./%c | col -b
 filetype *.[1-8] man ./%c
 
-fileviewer *.jpg,*.jpeg,*.png,*.ico vifmimg draw %px %py %pw %ph %c %pc vifmimg clear
-filextype *.bmp,*.jpg,*.jpeg,*.png,*.ico,*.gif,*.xpm  rotdir %f 2>/dev/null | sxiv -ia 2>/dev/null &
+"fileviewer *.jpg,*.jpeg,*.png,*.ico vifmimg draw %px %py %pw %ph %c %pc vifmimg clear
+fileviewer *.jpg,*.jpeg,*.png,*.ico  chafa -f symbols
+filextype *.bmp,*.jpg,*.jpeg,*.png,*.ico,*.gif,*.xpm  imv >/dev/null
+" filextype *.bmp,*.jpg,*.jpeg,*.png,*.ico,*.gif,*.xpm  rotdir %f 2>/dev/null | imv -ia 2>/dev/null & */
 
 filextype *.svg inkscape %f 2>/dev/null &
 filextype *.xcf gimp %f 2>/dev/null &

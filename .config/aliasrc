@@ -41,7 +41,7 @@ alias  \
 alias  \
 	magit="nvim -c MagitOnly" \
 	ref="shortcuts>/dev/null;source $XDG_CONFIG_HOME/shortcutrc;source $XDG_CONFIG_HOME/shell_functions;source $XDG_CONFIG_HOME/aliasrc" \
-	weath="less -S $XDG_DATA_HOME/.local/share/weatherreport" \
+	weath="less -Srf ${XDG_DATA_HOME:-HOME/share}/weatherreport" \
 	mvn="mvn -s $HOME/.local/repo/.m2/settings.xml"\
 	e="nvim" \
 	f="ranger" \

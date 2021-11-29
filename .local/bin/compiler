@@ -40,7 +40,6 @@ case "$file" in
 	*\.py) python "$file" ;;
 	*\.java) javac "$file" && java "$file" ;;
 	*\.go) go run "$file" ;;
-	*\.mail)  cmail "$file" "$rcpt"  ;;
 	*\.sent) setsid sent "$file" 2>/dev/null & ;;
 	 *) sed 1q "$file" | grep "^#!/" | sed "s/^#!//" | xargs -r -I % "$file" ;;
 esac

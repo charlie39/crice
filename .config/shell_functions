@@ -22,7 +22,7 @@ helper() {
 
 
 #editing scripts and files {local}
-function el { helper ; find   ~cf/ ~pr/ ~sb/ ~vvt/ ~pjg/ ~/vimwiki/ -type f  | fzf  --bind 'ctrl-y:execute-silent(echo {} | xclip -sel p)+abort' -m  --layout reverse --info inline  --preview 'bat --color always -p  {}' --preview-window 60%:border --color 'fg:#bbccdd,fg+:#ddeeff,preview-bg:#000000,border:#332288' | xargs -r nvr --remote-silent ; }
+function el { helper ; find   ~cf/ ~pr/ ~sb/ ~vvt/ ~pjg/ ~/vimwiki/ -type f  | fzf  --bind 'ctrl-x:execute-silent(echo {} | xclip -sel p)+abort' --bind 'ctrl-alt-x:execute-silent(cat {}|xclip -sel p)+abort' --keep-right -m --preview 'bat --color always -p  {}' --preview-window 60%:border --color 'fg:#bbccdd,fg+:#ddeeff,preview-bg:#000000,border:#332288' | xargs -r nvr --remote-silent ; }
 # fzf --bind 'f1:execute(less -f  {}),ctrl-y:execute-silent(echo {} | xclip -sel p)+abort'
 #editing scripts and files {global}
 eg() { sudo find /etc /var /usr  -type f  -path /home  -prune -o -print  | fzf  -m --layout reverse --info inline --preview 'bat --color always  {}' --preview-window border --color 'fg:#bbccdd,fg+:#ddeeff,preview-bg:#000000,border:#332288' | xargs -r -I {} sudoedit {} ;}
@@ -65,30 +65,35 @@ pacbrowse() { pacman -Qq | fzf -m --preview 'pacman -Qil {}' --layout=reverse --
 #----------------------------------------------------------------------------------------------------------------
 # 									Misc
 #----------------------------------------------------------------------------------------------------------------
-#watch videos #dmenu
+#watch videos #$DMENU
 wt() {
-    find -L ~vv/ ~M/ -maxdepth 5 | egrep ".*\.[mawo].{2,3}"| grep -F "$(find -L  ~vv/ ~M/ -maxdepth 5 | egrep ".*\.[mawo].{2,3}" | cut -d'/' -f5- | sed -E 's/\..{2,5}$//' |\
-    dmenu -i -p "Pick a Video:" -l 25)"|awk -F '.' 'FNR==1&&NF>1'|sed "s/'/\\\'/g" | xargs -I {} mpv {} ;
+    find -L ~vv/ ~M/ -maxdepth 5 | grep -F "$(find -L  ~vv/ ~M/ -maxdepth 5 | egrep ".*\.[mawo].{2,3}" | cut -d'/' -f5- | sed -E 's/\..{2,5}$//' |\
+    $DMENU -i -p "Pick a Video:" -l 25)"|awk -F '.' '$NF!="srt"&&FNR<=1&&NF>1'|sed "s/'/\\\'/g" | xargs -I {} mpv {} ;
 }
 
 #watch videos #rofi
 wtr() {
-    find -L ~vv/ ~M/ -maxdepth 5 | grep -v "srt$" | grep -F "$(find -L ~vv/ ~M/ -maxdepth 5 | egrep ".*\.[mawo].{2,3}" | cut -d'/' -f5- | sed -E 's/\..{2,5}$//' |\
-    rofi -lines 20 -width 60 -theme /usr/share/rofi/themes/lb -dmenu -i )" | sed "s/'/\\\'/g" | awk -F '.' 'FNR==1&&NF>1' | xargs -I {} mpv {} ;
+    find -L ~vv/ ~M/ -maxdepth 5 | grep -F "$(find -L ~vv/ ~M/ -maxdepth 5 | egrep ".*\.[mawo].{2,3}" | cut -d'/' -f5- | sed -E 's/\..{2,5}$//' |\
+    rofi -lines 20 -width 60 -theme /usr/share/rofi/themes/lb -dmenu -i )" | sed "s/'/\\\'/g" | awk -F '.' '$NF!="srt"&&FNR<=2&&NF>1' | xargs -I {} mpv {} ;
 }
 
-#read ebooks #dmenu
-pdf() { find ~dp/ | grep "$( find ~dp/ -name "*.pdf" -exec  basename -s .pdf {} \; | dmenu -i -p "Pick a Book:" -l 20 | sed 's/\[][]/\\\0/g' )" |\
+#read ebooks #$DMENU
+pdf() { find ~dp/ | grep "$( find ~dp/ -name "*.pdf" -exec  basename -s .pdf {} \; | $DMENU -i -p "Pick a Book:" -l 20 | sed 's/[][]/\\\0/g' )" |\
 	awk -F '.' "FNR==1&&NF>1" | sed "s/'/\\\'/g" | xargs -I {} zathura {} ;
 }
 
 #read ebooks #rofi
 pdfr() {
-	find ~dp/ | grep  "$( find ~dp/ -name "*.pdf" -exec  basename -s .pdf {} \; | rofi -lines 20 -width 60 -dmenu -i | sed 's/[][]/\\\0/g' )" |\
+	find ~dp/ | grep  "$( find ~dp/ -name "*.pdf" -exec  basename -s .pdf {} \; | rofi -lines 20 -width 60 -theme /usr/share/rofi/themes/gruvbox-dark-hard -dmenu -i | sed 's/[][]/\\\0/g' )" |\
 	awk -F '.' "FNR==1&&NF>1" | sed "s/'/\\\'/g" | xargs -I {} zathura {} ;
 }
+
+pics() {
+    find  ~pp/ ~/ -maxdepth 2 -iregex ".*\.\(png\|jpg\|jpeg\|bmp\|gif\|svg\)" | fzf --preview 'chafa -f symbols -s 60 {}' --keep-right --bind '?:preview:file --mime-type {}' --bind 'alt-y:execute-silent(echo {} | xclip -sel p)+abort' --bind 'alt-p:execute-silent(cat {} | xclip -sel p)+abort' -m | xargs -I {} imv {} ;
+}
+# --bind 'ctrl-y:execute-silent(echo {} | xclip -sel p)+abort' -m  --layout reverse --info inline  --preview 'bat --color always -p  {}' --preview-window 60%:border --color 'fg:#bbccdd,fg+:#ddeeff,preview-bg:#000000,border:#332288'
 #change default OS for next boot
-bootnxt() {  efibootmgr | rg "$(efibootmgr | awk -F'* ' 'NR>3 {print $2}' | dmenu -p "choose")" | sed 's/[^0-9]//g' | xargs -ro  sudo efibootmgr -n  ;}
+bootnxt() {  efibootmgr | rg "$(efibootmgr | awk -F'* ' 'NR>3 {print $2}' | $DMENU -p "choose")" | sed 's/[^0-9]//g' | xargs -ro  sudo efibootmgr -n  ;}
 
 #download large files from google drive
 gdrive_download () {
@@ -110,7 +115,7 @@ gdrive2_download () {
 
 ws_connect() {
 	[ "$1" = "best" ] && windscribe connect best && return
-	awk '!/*|\[/' ~/vimwiki/ws-vpn-servers.md | dmenu -i -p "Pick your server:" -l 26 | awk 'FNR==1&&NF>1 {print}' | cut -c23-26 | tr -d ' ' | xargs -I {} windscribe connect {}  2>/dev/null ;}
+	awk '!/*|\[/' ~/vimwiki/ws-vpn-servers.md | $DMENU -i -p "Pick your server:" -l 26 | awk 'FNR==1&&NF>1 {print}' | cut -c23-26 | tr -d ' ' | xargs -I {} windscribe connect {}  2>/dev/null ;}
 
 ws() {
 	case "$1" in
@@ -159,7 +164,7 @@ prx() {
 	 [ "$somebody" ] && echo -e "$somebody is listening on port 53\nRun with 's' to stop it" && return
 
 	local proxy=""
-	 proxy=$(echo "${(@k)proxyDNSs}" |tr ' ' '\n' | dmenu -i -p "Pick Your proxy server:" -l 2 | tr -d ' ')
+	 proxy=$(echo "${(@k)proxyDNSs}" |tr ' ' '\n' | $DMENU -i -p "Pick Your proxy server:" -l 2 | tr -d ' ')
 
 	 case $proxy in
 		Cloudflared)\

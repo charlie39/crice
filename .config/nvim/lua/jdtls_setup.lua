@@ -46,7 +46,7 @@ function M.setup()
                   function()
                       return {
                           exe = 'java',
-                          args = { '-jar', os.getenv('HOME') .. '/.local/lib/google-format-java/google-java-format.jar', vim.api.nvim_buf_get_name(0) },
+                          args = { '-jar', os.getenv('HOME') .. '/.local/lib/google-format-java/google-java-format-1.10.0-all-deps.jar', vim.api.nvim_buf_get_name(0) },
                           stdin = true
                       }
                   end

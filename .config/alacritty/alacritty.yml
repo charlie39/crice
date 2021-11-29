@@ -30,8 +30,8 @@ font:
     family: Hack
     style: italic
 
-  size: 8.0
-  background_opacity: 0
+  size: 12
+  background_opacity: 0.9
 #window:
   # Window dimensions (changes require restart)
   #
@@ -339,7 +339,7 @@ font:
 #
 # Window opacity as a floating point number from `0.0` to `1.0`.
 # The value `0.0` is completely transparent and `1.0` is opaque.
-  background_opacity: 0.1
+  # background_opacity: 0.0
 
 #selection:
   # This string contains all characters that are used as separators for
@@ -356,7 +356,7 @@ font:
   #   - ▇ Block
   #   - _ Underline
   #   - | Beam
-  #style: Block
+  style: Beam
 
   # Vi mode cursor style
   #
@@ -364,11 +364,11 @@ font:
   # the style of the active value of the normal cursor.
   #
   # See `cursor.style` for available options.
-  #vi_mode_style: None
+  vi_mode_style: Block
 
   # If this is `true`, the cursor will be rendered as a hollow box when the
   # window is not focused.
-  #unfocused_hollow: true
+  unfocused_hollow: true
 
   # Thickness of the cursor relative to the cell width as floating point number
   # from `0.0` to `1.0`.
@@ -818,43 +818,43 @@ indexed_colors:
   - {index: 20, color: '0x7e90a3'}
   - {index: 21, color: '0xd6d7d9'}
 colors:
-  # COLORSCHEME: /home/charlie/.config/alacritty/colors/base16-solarized-dark.yml
+  # COLORSCHEME: base16-twilight.yml
   # Default colors
   primary:
-    background: '0x002b36'
-    foreground: '0x93a1a1'
+    background: '0x1e1e1e'
+    foreground: '0xa7a7a7'
 
   # Colors the cursor will use if `custom_cursor_colors` is true
   cursor:
-    text: '0x002b36'
-    cursor: '0x93a1a1'
+    text: '0x1e1e1e'
+    cursor: '0xa7a7a7'
 
   # Normal colors
   normal:
-    black: '0x002b36'
-    red: '0xdc322f'
-    green: '0x859900'
-    yellow: '0xb58900'
-    blue: '0x268bd2'
-    magenta: '0x6c71c4'
-    cyan: '0x2aa198'
-    white: '0x93a1a1'
+    black: '0x1e1e1e'
+    red: '0xcf6a4c'
+    green: '0x8f9d6a'
+    yellow: '0xf9ee98'
+    blue: '0x7587a6'
+    magenta: '0x9b859d'
+    cyan: '0xafc4db'
+    white: '0xa7a7a7'
 
   # Bright colors
   bright:
-    black: '0x657b83'
-    red: '0xcb4b16'
-    green: '0x073642'
-    yellow: '0x586e75'
-    blue: '0x839496'
-    magenta: '0xeee8d5'
-    cyan: '0xd33682'
-    white: '0xfdf6e3'
+    black: '0x5f5a60'
+    red: '0xcda869'
+    green: '0x323537'
+    yellow: '0x464b50'
+    blue: '0x838184'
+    magenta: '0xc3c3c3'
+    cyan: '0x9b703f'
+    white: '0xffffff'
 
   indexed_colors:
-    - {index: 16, color: '0x43820d'}
-    - {index: 17, color: '0xc98344'}
-    - {index: 18, color: '0x1c3657'}
-    - {index: 19, color: '0x2a343a'}
-    - {index: 20, color: '0x84898c'}
-    - {index: 21, color: '0xa7cfa3'}
+    - {index: 16, color: '0xde935f'}
+    - {index: 17, color: '0xa3685a'}
+    - {index: 18, color: '0x282a2e'}
+    - {index: 19, color: '0x373b41'}
+    - {index: 20, color: '0xb4b7b4'}
+    - {index: 21, color: '0xe0e0e0'}
