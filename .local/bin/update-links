@@ -12,9 +12,17 @@
  that you dont want.
   '
 
-#Put the full path of the dotfile directory
-dotdir=~/packages/repos/crice
-
+#Finding the root of the project
+if [ $(readlink $0) ]; then
+    dotdir=$(dirname $(dirname $(dirname $(readlink $0))))
+elif [ $(command -v git) ]; then
+    cd $(dirname $0)
+    dotdir=$(git rev-parse --show-toplevel)
+else
+    #Manually specify the path to the root of repository
+    echo "Please install git. Or manually specifiy the root path to the project"
+    #dotdir=~/packages/repos/crice
+fi
 #Put files and directories' path  to exlcude from operation
 # exscript=("/update-links" "/firefox-sync")
 # exconf=("/profile*")

@@ -46,3 +46,7 @@
 	lastVersion = 317cd8f8b314f44e6bcef92aaf1d109dfc028dfc
 [init]
 	defaultBranch = main
+[alias]
+	root = rev-parse --show-toplevel
+	exec = !exec
+	root = rev-parse --show-toplevel
