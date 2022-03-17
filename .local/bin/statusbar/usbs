@@ -1,0 +1,17 @@
+#!/bin/zsh
+# set -x
+declare -a usbs
+old_arr=("1d6b:0003" "0bda:b009" "0408:5365" "1d6b:0002")
+read -A -d ' ' new_arr <<(lsusb|cut -d ' ' -f6)
+for j in "${new_arr[@]}";do
+    out=1
+    for i in "${old_arr[@]}";do
+        if [[ "${i}" == "${j}" ]];then
+            out=0
+            break
+        fi
+    done
+    (( out )) && usbs+=( "$j" )
+done
+
+[ "${#usbs[@]}" -eq 2 ] && sudo lsusb -d $usbs -v | egrep "(Vendor|InterfaceClass| Speed )"

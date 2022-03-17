@@ -3,10 +3,16 @@
 # i3blocks mail module.
 # Displays number of unread mail and an loading icon if updating.
 # When clicked, brings up `neomutt`.
-
+acc="primary"
 case $BLOCK_BUTTON in
 	1) "$TERMINAL" -e neomutt ;;
-	2) setsid mbsync -c $XDG_CONFIG_HOME/isync/mbsyncrc primary >/dev/null & ;;
+    2) if isnetup; then
+            tempfile=$(mktemp /tmp/mailXXX)
+            trap 'rm $tempfile' 0 1 15
+            mbsync -c $XDG_CONFIG_HOME/isync/mbsyncrc $acc 1>/dev/null 2>$tempfile
+            [ $tempfile ] && notify-send "❌" "$(cat $tempfile)" && exit
+            notify-send -i /usr/share/icons/Adwaita/256x256/legacy/emblem-synchronizing.png "syncing"  "$acc mail syncing"
+       fi ;;
 	3) notify-send "📬 Mail module" "\- Shows unread mail
 - Shows 🔃 if syncing mail
 - Left click opens neomutt

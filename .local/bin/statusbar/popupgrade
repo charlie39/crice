@@ -1,8 +1,13 @@
 #!/bin/sh
 
-printf "Beginning upgrade.\\n"
+isnetup||exit
 
-yay -Syu
+printf "Beginning upgrade.\\n"
+if command -v paru >/dev/null; then
+    paru -aSyu
+else
+    pacman -Syu
+fi
 pkill -RTMIN+8 "${STATUSBAR:-dwmblocks}"
 
 printf "\\nUpgrade complete.\\nPress <Enter> to exit window.\\n\\n"
