@@ -138,7 +138,7 @@ autoload edit-command-line; zle -N edit-command-line
 bindkey '^e' edit-command-line
 bindkey -s '^[p' 'pdfr\n'	#open pdf files with alt+p
 bindkey -s '^[w' 'wtr\n'		#open videos with alt+w
-bindkey -s '^[i' 'pics\n'		#open videos with alt+w
+bindkey -s '^[i' 'pics\n'		#open pictures alt+i
 bindkey -s '^[a' 'bc -l\n'	#open calculator alt+a
 bindkey -s '^[f' 'cdl\n'	#change directory with alt+f(local)
 bindkey -s '^[F' 'cdg\n'	#change directory with alt+F(global)

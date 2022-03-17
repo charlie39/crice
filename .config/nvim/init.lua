@@ -129,7 +129,7 @@ exe 'packadd nvim-treesitter'
 exe 'packadd popup.nvim'
 exe 'packadd nvim-cheat.sh'
 exe 'packadd nvim-select-multi-line'
-exe 'packadd vim-fugitive'
+-- exe 'packadd vim-fugitive'
 
 ---| Themes |--
 exe 'packadd vim-airline-themes'

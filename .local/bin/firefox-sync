@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/zsh
 
 #A simple script derived from arch wiki , to load firefox browser profile and cache to RAM
 #Place it under ~/.local/bin/ or anywhere visible to PATH
@@ -15,7 +15,7 @@ USAGE: $(basename "$0") [-s [profilename]]  [-d [profilename]] [-v]
 
 OPTIONS:
 -s|--sync    --------------- Mention the profile to sync. If no argument is provided than default profile is used.
--d|--delete  --------------- Mention the profile to delete. If no argument is provided than default profile is used.
+-m|--remove  --------------- Mention the profile to delete. If no argument is provided than default profile is used.
 -v|--verbose --------------- Verbose output.
 END
 }
@@ -85,17 +85,15 @@ syncff() {
         touch "${link}"/.unpacked
         notify-send -i firefox -t 5000 "firefox sync" "rsynced Static $3 to ZRAM $3"
     fi
+    exit
 }
 
 delete_profile() {
-    #compgen is bash built in: so only try this with bash
-    # arr=( $(compgen -G /tmp/firefox-\*) ) ||( echo "directory doesn't exist" && exit 1)
-    arr=( $(ls -d /tmp/ff-sync-*) ) ||{ echo "directory doesn't exist"; exit 1;}
-    #bash array starts at index 0 while zsh starts at 1: so change index for zsh conversion
-    arrfilter=$(echo "${arr[@]}" | sed -E 's/.*ff-sync-(.*default.*)-'"$USER"'.*/\1/')
-    rsync -av --delete --exclude .unpacked "${arr[0]}"/ "${cachepath}"/static-"$arrfilter"
-    rsync -av --delete --exclude .unpacked "${arr[1]}"/ "${profilepath}"/static-"$arrfilter"
-    rm -r ${arr[@]}
+    ! [ -d $volatileprofile -a -d $volatilecache ] && echo "no profile in tmp" && exit
+    syncff "${profilepath}" "${volatileprofile}" "profile" &
+    syncff "${cachepath}"  "${volatilecache}" "cache" &
+    rm -r $volatileprofile
+    rm -r $volatilecache
     notify-send -i firefox "Firefox removed from /tmp" "/tmp cleared of Firefox cache and profile"
     exit 0
 }

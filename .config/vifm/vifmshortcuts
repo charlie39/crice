@@ -159,6 +159,10 @@ map gcacp :cd ~/.cache/paru<CR>
 map tcacp <tab>:cd ~/.cache/paru<CR><tab>
 map Mcacp <tab>:cd ~/.cache/paru<CR><tab>:mo<CR>
 map Ycacp <tab>:cd ~/.cache/paru<CR><tab>:co<CR>
+map gcacpc :cd ~/.cache/paru/clone<CR>
+map tcacpc <tab>:cd ~/.cache/paru/clone<CR><tab>
+map Mcacpc <tab>:cd ~/.cache/paru/clone<CR><tab>:mo<CR>
+map Ycacpc <tab>:cd ~/.cache/paru/clone<CR><tab>:co<CR>
 map gP :cd ~/Downloads/Project<CR>
 map tP <tab>:cd ~/Downloads/Project<CR><tab>
 map MP <tab>:cd ~/Downloads/Project<CR><tab>:mo<CR>
@@ -231,6 +235,10 @@ map gCz :cd ~/.config/zsh<CR>
 map tCz <tab>:cd ~/.config/zsh<CR><tab>
 map MCz <tab>:cd ~/.config/zsh<CR><tab>:mo<CR>
 map YCz <tab>:cd ~/.config/zsh<CR><tab>:co<CR>
+map gCzc :cd ~/.config/zsh<CR>
+map tCzc <tab>:cd ~/.config/zsh<CR><tab>
+map MCzc <tab>:cd ~/.config/zsh<CR><tab>:mo<CR>
+map YCzc <tab>:cd ~/.config/zsh<CR><tab>:co<CR>
 map gCi :cd ~/.config/i3<CR>
 map tCi <tab>:cd ~/.config/i3<CR><tab>
 map MCi <tab>:cd ~/.config/i3<CR><tab>:mo<CR>
@@ -263,6 +271,10 @@ map gmn :cd /mnt<CR>
 map tmn <tab>:cd /mnt<CR><tab>
 map Mmn <tab>:cd /mnt<CR><tab>:mo<CR>
 map Ymn <tab>:cd /mnt<CR><tab>:co<CR>
+map gusi :cd /usr/share/icons<CR>
+map tusi <tab>:cd /usr/share/icons<CR><tab>
+map Musi <tab>:cd /usr/share/icons<CR><tab>:mo<CR>
+map Yusi <tab>:cd /usr/share/icons<CR><tab>:co<CR>
 map bf :e ~/.config/files<CR>
 map bd :e ~/.config/directories<CR>
 map bw :e ~/.config/bookmarks<CR>

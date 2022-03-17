@@ -2,7 +2,7 @@
 # Adds ~/.local/bin` to $PATH
 export PATH="$(du "$HOME/.local/bin/" | cut -f2 | tr '\n' ':' | sed 's/:*$//'):$PATH"
 #X=X server; W=Wayland
-export XW="W"
+export XW="X"
 #export XDG environment variables from '~/.config/ENV'
 eval "$(sed 's/^[^#].*/export &/g;t;d' ~/.config/ENV)"
 

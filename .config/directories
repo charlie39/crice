@@ -39,6 +39,7 @@ prl	~/packages/repos/dwl
 prdb ~/packages/repos/dwmblocks
 cac	~/.cache
 cacp	~/.cache/paru
+cacpc	~/.cache/paru/clone
 P      ~/Downloads/Project
 pj      ~/Downloads/Project/Java
 pjg      ~/Downloads/Project/Java/games
@@ -57,6 +58,7 @@ cf	~/.config
 Cb	~/.config/bash
 Cr ~/.config/river
 Cz	~/.config/zsh
+Czc	~/.config/zsh
 Ci ~/.config/i3
 Cy ~/.config/sway
 Czo	~/.config/zsh/omz
@@ -65,3 +67,4 @@ Czocp	~/.config/zsh/omz/custom/plugins
 Cv	~/.config/nvim
 Cvp	~/.config/nvim/plugged
 mn	/mnt
+usi /usr/share/icons

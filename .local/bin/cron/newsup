@@ -2,15 +2,19 @@
 # Set as a cron job to check for new RSS entries for newsboat.
 # If newsboat is open, sends it an "R" key to refresh.
 
-ping -q -c 1 1.1.1.1 > /dev/null || exit
+# ping -c 1 1.1.1.1 > /dev/null || exit
+icon="/usr/share/icons/Pop/scalable/mimetypes/application-rss+xml-symbolic.svg"
+error="/usr/share/icons/Pop/64x64/status/dialog-error.png"
 
-/usr/bin/notify-send "📰 Updating RSS feeds..."
-
-pgrep -x newsboat >/dev/null && /usr/bin/xdotool key --window "$(/usr/bin/xdotool search --name newsboat)" R && exit
-
-echo 🔃 > /tmp/newsupdate
-pkill -RTMIN+6 "${STATUSBAR:?}"
-/usr/bin/newsboat -x reload
-rm -f /tmp/newsupdate
-pkill -RTMIN+6 "${STATUSBAR:?}"
-/usr/bin/notify-send "📰 RSS feed update complete."
+if [ $(pgrep Xorg) ]; then
+    /usr/bin/notify-send -i $icon "Updating RSS feeds..."
+    pgrep -x newsboat >/dev/null && /usr/bin/xdotool key --window "$(/usr/bin/xdotool search --name newsboat)" R && exit
+    echo 🔃 > /tmp/newsupdate
+    pkill -RTMIN+6 "${STATUSBAR:?}"
+    /usr/bin/newsboat -x reload
+    rm -f /tmp/newsupdate
+    pkill -RTMIN+6 "${STATUSBAR:?}"
+    /usr/bin/notify-send -i $icon "📰 RSS feed update complete."
+else
+    notify-send -i $error "Error" "functionality doesn't support in Wayland"
+fi

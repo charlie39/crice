@@ -12,6 +12,8 @@ NT_bookmarks="$XDG_DATA_HOME/nvim/NERDTreeBookmarks"
 printf "# vim: filetype=sh\\n" > "$fish_shortcuts"
 printf "# vim: filetype=sh\\nalias " > "$shell_shortcuts"
 printf "\" vim: filetype=vim\\n" > "$vifm_shortcuts"
+printf "# vim: filetype=vim\\n" > "$zsh_named_dirs"
+printf "# vim: filetype=vim\\n" > "$ranger_shortcuts"
 process() {
 	tee >(awk '{print $1"=\"cd "$2" && lsd\" \\"}' >> "$shell_shortcuts") \
 	>(awk '{print "hash -d "$1"="$2}' >> "$zsh_named_dirs") \

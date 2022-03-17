@@ -9,19 +9,20 @@
 
 
 if [ $(pgrep Xorg) ];then
+    # Speed xrate up
     xrdb ~/.config/X11/Xresources &# Uncomment to use Xresources colors/settings on startup
     xcompmgr &		# xcompmgr for transparency
-    xset r rate 300 50 &	# Speed xrate up
     unclutter &		# Remove mouse when idle
+    xset r rate 300 50
     ! [ "$(pgrep mpd-module-up)" ] && mpd-module-update  &	# Check for when to update the mpd module
-    # this is no more required because of interception tools : see below
-    # remaps &        # run the remaps script, switching caps/esc and more; check it for more info
-elif ! [ "$(pidof sway)" ] && ! [ "$(pidof waybar)" ] && ! [ "$(pidof wayfire)" ];then
-    waybar &
+else
+    if ! [ "$(pidof sway)" ] && ! [ "$(pidof waybar)" ] && ! [ "$(pidof wayfire)" ];then
+        waybar &
+    fi
+    foot --server &>/dev/null &
+    ! [ "$(pgrep clipmangr)" ] && clipmangr daemon &
 fi
-
 ! [ $(pidof sway) ] && setbg &          # set the background with the `setbg` script
-! [ "$(pgrep clipmangr)" ] && clipmangr daemon &
 ! [ "$(pidof mpd)" ] && mpd &          # music player daemon-you might prefer it as a service though
 ! [ "$(pidof dwl)" ] && pgrep dunst && { pkill dunst && dunst & } || dunst >/dev/null &         # dunst for notifications
 ! [ "$(pidof udevmon)" ] && sudo nice -20 udevmon  2> ~/.config/interception-tools/udevmon.err 1> ~/.config/interception-tools/udevmon.log &
