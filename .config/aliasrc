@@ -39,11 +39,11 @@ alias  \
 
 # Some other stuff
 alias  \
+	e="$EDITOR" \
 	magit="nvim -c MagitOnly" \
 	ref="shortcuts>/dev/null;source $XDG_CONFIG_HOME/shortcutrc;source $XDG_CONFIG_HOME/shell_functions;source $XDG_CONFIG_HOME/aliasrc" \
 	weath="less -Srf ${XDG_DATA_HOME:-HOME/share}/weatherreport" \
 	mvn="mvn -s $HOME/.local/repo/.m2/settings.xml"\
-	e="nvim" \
 	f="ranger" \
 	irssi="irssi --home=$XDG_CONFIG_HOME/irssi -c localhost -p 8090 -w znc"\
 	znc="znc --datadir ~/.config/znc"

@@ -10,7 +10,6 @@ alias -g B="|& bat"
 alias -g ET="|tail -n 20"
 alias -g DN=/dev/null
 alias -g za="zathura"
-alias -g e="$EDITOR"
 alias -g less="cless -N"
 alias -g Sk="*~(*.bz2|*.gz|*.tgz|*.zip|*.z)"
 alias -g SNR="| sort -nr"

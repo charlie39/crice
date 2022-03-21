@@ -3,6 +3,20 @@
 #-------------------------------------------------------------------------------------------------------------------------------
 #   					Files and Directories
 #-------------------------------------------------------------------------------------------------------------------------------
+#helper function ----------------------------------------------------------------------------
+dynamic() {
+    a=( "${@}" )
+    lo=${a[${#a[@]}]}
+    if [[ $lo =~ [0-9] ]];then
+        md=$lo
+        if [ "$#" -gt 1 ];then
+            a[$#]=""
+            opt=${a[@]}
+        fi
+    elif [[ $# -ge 1 ]];then
+        opt=${a[@]}
+    fi
+}
 
 helper() {
 	if [ -S "$NVIM_LISTEN_ADDRESS" ]; then
@@ -19,37 +33,85 @@ helper() {
 		fi
 	fi
 }
-
+#-------------------------------------------------------------------------------------------
+pics() {
+    opt=~pp/
+    md=5
+    dynamic "$@"
+    find $(echo $opt) -maxdepth $md -iregex ".*\.\(png\|jpg\|jpeg\|bmp\|gif\|svg\)" 2>/dev/null |\
+    fzf --preview 'chafa -f symbols -s 60 {}' --keep-right \
+    --bind 'alt-Y:execute-silent(echo {} | xclip -sel c)+abort'\
+    --bind 'alt-p:execute-silent(imv {})'\
+    --bind 'alt-P:execute-silent(cat {} |xclip -sel p)+abort' -m | xargs -I {} imv {} ;
+}
+# --bind 'ctrl-y:execute-silent(echo {} | xclip -sel p)+abort' -m  --layout reverse --info inline  --preview 'bat --color always -p  {}' --preview-window 60%:border --color 'fg:#bbccdd,fg+:#ddeeff,preview-bg:#000000,border:#332288'
+#change default OS for next boot
 
 #editing scripts and files {local}
-function el { helper ; find   ~cf/ ~pr/ ~sb/ ~vvt/ ~pjg/ ~/vimwiki/ -type f  | fzf  --bind 'ctrl-x:execute-silent(echo {} | xclip -sel p)+abort' --bind 'ctrl-alt-x:execute-silent(cat {}|xclip -sel p)+abort' --keep-right -m --preview 'bat --color always -p  {}' --preview-window 70%:border --color 'fg:#bbccdd,fg+:#ddeeff,preview-bg:#000000,border:#332288' | xargs -r nvr --remote-silent ; }
+function el {
+    helper
+    opt=( ~cf/ ~pr/ ~sb/ ~vvt/ ~pjg/ ~/vimwiki/ )
+    md=5
+    dynamic "$@"
+    find $(echo $opt) -maxdepth $md -type f -o -type l 2>/dev/null |\
+        fzf  --bind 'ctrl-x:execute-silent(echo {} | xclip -sel p)+abort'\
+        --bind 'ctrl-alt-x:execute-silent(cat {}|xclip -sel p)+abort'\
+        --keep-right -m --preview 'bat --color always -p  {}' --preview-window 70%:border\
+        --color 'fg:#bbccdd,fg+:#ddeeff,preview-bg:#000000,border:#332288' |\
+        xargs -r nvr --remote-silent ;\
+}
+
 # fzf --bind 'f1:execute(less -f  {}),ctrl-y:execute-silent(echo {} | xclip -sel p)+abort'
 #editing scripts and files {global}
-eg() { sudo find /etc /var /usr  -type f  -path /home  -prune -o -print  | fzf  -m --layout reverse --info inline --preview 'bat --color always  {}' --preview-window border --color 'fg:#bbccdd,fg+:#ddeeff,preview-bg:#000000,border:#332288' | xargs -r -I {} sudoedit {} ;}
+eg() {
+    opt=(/etc /var /usr)
+    md=7
+    dynamic "$@"
+    sudo find $(echo $opt) -maxdepth $md -type f  -path /home  -prune -o -print 2>/dev/null |\
+        fzf  -m --layout reverse --info inline --preview 'bat --color always  {}' \
+        --preview-window border --color 'fg:#bbccdd,fg+:#ddeeff,preview-bg:#000000,border:#332288' |\
+        xargs -r -I {} sudoedit {} ;\
+}
 
 #changing directory by file/directory name {local}
-function cdl { cd "$(find  ~pr/ ~cf/ ~/.local/ ~/vimwiki/ -type d | fzf  --layout reverse --height 50% --info inline --preview 'lsd --color=always --icon always {}')" ;}
+function cdl {
+    cd "$(find  ~pr/ ~cf/ ~/.local/ ~/vimwiki/ -type d |\
+    fzf  --layout reverse --height 50% --info inline \
+    --preview 'lsd --color=always --icon always {}')" ;\
+}
 
 #changing directory by file/directory name {global}
-cdg() { cd "$( sudo find / -type d -path /home -type d -prune -o -print | fzf --layout reverse --height 50% --info inline --preview 'tree -C {}')" ; }
+cdg() {
+    cd "$( sudo find / -type d -path /home -type d -prune -o -print |\
+    fzf --layout reverse --height 50% --info inline --preview 'tree -C {}')" ;\
+}
 
 #change directory {shared directory}
 cdD() { cd "$( find  ~D/ ~D/CellPhones/ -type d| fzf --preview 'tree -C {1}')" ; }
-rf() {
-local INITIAL_QUERY=""
-local RG_PREFIX="rg --column --line-number --no-heading --follow --color=always --smart-case "
-local FZF_DEFAULT_COMMAND="$RG_PREFIX '$INITIAL_QUERY' $@"
-fzf --bind "change:reload:$RG_PREFIX {q} || true" --bind "ctrl-m:execute(less -f file)"  --ansi --disabled --query "$INITIAL_QUERY" --height=50% --layout=reverse | cut -d":" -f1
 
-  unset FZF_DEFAULT_COMMAND
+# WIP
+rf() {
+    local INITIAL_QUERY=""
+    local RG_PREFIX="rg --column --line-number --no-heading --follow --color=always --smart-case "
+    local FZF_DEFAULT_COMMAND="$RG_PREFIX '$INITIAL_QUERY' $@"
+
+    fzf --bind "change:reload:$RG_PREFIX {q} || true" \
+        --bind "ctrl-m:execute(less -f file)"  \
+        --ansi --disabled --query "$INITIAL_QUERY"\
+        --height=50% --layout=reverse | cut -d":" -f1
+
+   unset FZF_DEFAULT_COMMAND RG_PREFIX
 }
 
 #-------------------------------------------------------------------------------------------------------------------------------
 # 								process mgt
 #-------------------------------------------------------------------------------------------------------------------------------
 process() {
-ps -ef | fzf --bind 'ctrl-m:reload(ps aux)' --header 'Press CTRL-R to reload' --header-lines=1 --height=50% --layout=reverse --preview ""
+    ps -ef | fzf --bind 'ctrl-m:reload(ps aux)' \
+        --header 'Press CTRL-R to reload' \
+        --header-lines=1 --height=50% --layout=reverse --preview ""
 }
+
 #-------------------------------------------------------------------------------------------------------------------------------
 #                     			Package Management
 #-------------------------------------------------------------------------------------------------------------------------------
@@ -67,41 +129,67 @@ pacbrowse() { pacman -Qq | fzf -m --preview 'pacman -Qil {}' --layout=reverse --
 #----------------------------------------------------------------------------------------------------------------
 #watch videos #$DMENU
 wt() {
-    find -L ~vv/ ~M/ -maxdepth 5 | grep -F "$(find -L  ~vv/ ~M/ -maxdepth 5 | egrep ".*\.[mawo].{2,3}" | cut -d'/' -f5- | sed -E 's/\..{2,5}$//' |\
-    $DMENU -i -p "Pick a Video:" -l 25)"|awk -F '.' '$NF!="srt"&&FNR<=1&&NF>1'|sed "s/'/\\\'/g" | xargs -I {} "$VPLAYER" {} ;
+    opt=(~vv/ ~M/)
+    md=5
+    dynamic "$@"
+    find -L $(echo $opt) -maxdepth $md | grep -F "$(find -L  $(echo $opt) -maxdepth $md |\
+        egrep ".*\.[mawo].{2,3}" | cut -d'/' -f5- | sed -E 's/\..{2,5}$//' |\
+    $DMENU -i -p "Pick a Video:" -l 25)"|awk -F '.' '$NF!="srt"&&FNR<=1&&NF>1'|\
+    sed "s/'/\\\'/g" | tee >(xargs -I {} "$VPLAYER" {}) ;
+}
+
+naam() {
+    ext=$(echo $@ | rev | grep ^.*\. | rev)
 }
 
 #watch videos #rofi
 wtr() {
-    find -L ~vv/ ~M/ -maxdepth 5 | grep -F "$(find -L ~vv/ ~M/ -maxdepth 5 | egrep ".*\.[mawo].{2,3}" | cut -d'/' -f5- | sed -E 's/\..{2,5}$//' |\
-    rofi -lines 20 -width 60 -theme /usr/share/rofi/themes/lb -dmenu -i )" | sed "s/'/\\\'/g" | awk -F '.' '$NF!="srt"&&FNR<=2&&NF>1' | xargs -I {} "$VPLAYER" {} ;
+    opt=(~vv/ ~M/)
+    md=5
+    name=
+    dynamic "$@"
+    find -L $(echo $opt) -maxdepth $md | grep -F "$(find -L $(echo $opt) -maxdepth $md |\
+    egrep ".*\.[mawo].{2,3}" |cut -d'/' -f5- | sed -E 's/\..{2,5}$//' |\
+    rofi -lines 20 -width 60 -theme /usr/share/rofi/themes/lb -dmenu -i|\
+    sed 's/$/./' )"| sed "s/'/\\\'/g"| awk -F '.' '$NF!="srt"&&FNR==1&&NF>1'|\
+    tee >(xargs -I {} "$VPLAYER" {}) >(sed 's/^/\"/;s/$/\"/;s/\\//g');
+}
+
+fplay() {
+    #run karma periodically to keep the playlist updated
+    playlist=~/Videos/Playlist.m3u8
+    [[ -f ${1} ]] && playlist=${1}
+    cat "$playlist" | fzf --keep-right \
+        --bind "alt-Y:execute-silent(echo {} | xclip -sel c)" \
+        --bind "alt-p:execute-silent( echo "{}" | xargs -r -I {} vlc {})" |\
+        xargs -r -I {} $VPLAYER {}
+    echo $playlist
 }
 
 #read ebooks #$DMENU
-pdf() { find ~dp/ | grep "$( find ~dp/ -name "*.pdf" -exec  basename -s .pdf {} \; | $DMENU -i -p "Pick a Book:" -l 20 | sed 's/[][]/\\\0/g' )" |\
-	awk -F '.' "FNR==1&&NF>1" | sed "s/'/\\\'/g" | xargs -I {} zathura {} ;
+pdf() {
+    opt=(~dp/)
+    dynamic "$@"
+    find $(echo $opt) | grep "$( find $(echo $opt) -name "*.pdf" -exec  basename -s .pdf {} \; |\
+    $DMENU -i -p "Pick a Book:" -l 20 | sed 's/[][]/\\\0/g' )" |\
+    awk -F '.' "FNR==1&&NF>1" | sed "s/'/\\\'/g" | tee >(xargs -I {} zathura {})
 }
 
 #read ebooks #rofi
 pdfr() {
-	find ~dp/ | grep  "$( find ~dp/ -name "*.pdf" -exec  basename -s .pdf {} \; |\
-        rofi -lines 20 -width 60 -theme /usr/share/rofi/themes/gruvbox-dark-hard -dmenu -i |\
-        sed 's/[][]/\\\0/g' )" | awk -F '.' "FNR==1&&NF>1" | sed "s/'/\\\'/g" | xargs -I {} zathura {} ;
+    opt=~dp/
+    md=5
+    dynamic "$@"
+    find $(echo $opt) -maxdepth $md 2>/dev/null |\
+       egrep --color=auto --binary-files=text "$( find $(echo $opt) -maxdepth $md -name "*.pdf" -exec  basename -s .pdf {} \; 2>/dev/null |\
+       rofi -lines 20 -width 60 -theme /usr/share/rofi/themes/gruvbox-dark-hard -dmenu -i |\
+       sed 's/[][]/\\\0/g;s/(/\\\(/g;s/)/\\\)/g;s/$/\.pdf/' )" |\
+       awk -F '.' "FNR==1&&NF>1" | sed "s/'/\\\'/g" | tee >(xargs -r -I {} zathura {}) >(sed 's/^/\"/;s/$/\"/;s/\\//g')
 }
 
-pics() {
-    find "${@}" ~pp/ -maxdepth 5 -iregex ".*\.\(png\|jpg\|jpeg\|bmp\|gif\|svg\)" 2>/dev/null |\
-        fzf --preview 'chafa -f symbols -s 60 {}' --keep-right \
-        --bind '?:preview:file --mime-type {}' \
-        --bind 'alt-Y:execute-silent(echo {} | xclip -sel c)+abort'\
-        --bind 'alt-p:execute-silent(imv {})'\
-        --bind 'alt-P:execute-silent(cat {} |xclip -sel p)+abort' -m | xargs -I {} imv {} ;
-}
-# --bind 'ctrl-y:execute-silent(echo {} | xclip -sel p)+abort' -m  --layout reverse --info inline  --preview 'bat --color always -p  {}' --preview-window 60%:border --color 'fg:#bbccdd,fg+:#ddeeff,preview-bg:#000000,border:#332288'
-#change default OS for next boot
 bootnxt() {  efibootmgr | rg "$(efibootmgr | awk -F'* ' 'NR>3 {print $2}' | $DMENU -p "choose")" | sed 's/[^0-9]//g' | xargs -ro  sudo efibootmgr -n  ;}
 
-#download large files from google drive
+#download large files from google drive #WIP
 gdrive_download () {
   CONFIRM=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate "https://docs.google.com/uc?export=download&id=$1" -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')
   wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$CONFIRM&id=$1" -O $2
@@ -121,7 +209,10 @@ gdrive2_download () {
 
 ws_connect() {
 	[ "$1" = "best" ] && windscribe connect best && return
-	awk '!/*|\[/' ~/vimwiki/ws-vpn-servers.md | $DMENU -i -p "Pick your server:" -l 26 | awk 'FNR==1&&NF>1 {print}' | cut -c23-26 | tr -d ' ' | xargs -I {} windscribe connect {}  2>/dev/null ;}
+	awk '!/*|\[/' ~/vimwiki/ws-vpn-servers.md |\
+        $DMENU -i -p "Pick your server:" -l 26 |\
+        awk 'FNR==1&&NF>1 {print}' | cut -c23-26 |\
+        tr -d ' ' | xargs -I {} windscribe connect {}  2>/dev/null ;}
 
 ws() {
 	case "$1" in
@@ -192,18 +283,18 @@ jset() { local cmd='sudo archlinux-java set' && `echo $cmd` $1 && echo -e "\033[
 
 #select jdk
 cj() {
-# for i in "$(archlinux-java status)"; do
-# echo -e "\033[34m$i";
-# done
+    # for i in "$(archlinux-java status)"; do
+    # echo -e "\033[34m$i";
+    # done
 
-case  $1 in
-8)  	  jset java-8-openjdk ;;
-11)    	  jset 11.0.6.j9-adpt  ;;
-12) 	  jset java-12-jdk ;;
-12o)      jset java-12-openjdk ;;
-15)	  jset java-15-jdk ;;
-15fx)     jset zulu-javafx-15.28.51 ;;
-*)   	  echo -e "\033[35mAvailable JDKs and their option.\nChoose the appropriate option:\n
+    case  $1 in
+        8)  	  jset java-8-openjdk ;;
+        11)    	  jset 11.0.6.j9-adpt  ;;
+        12) 	  jset java-12-jdk ;;
+        12o)      jset java-12-openjdk ;;
+        15)	  jset java-15-jdk ;;
+        15fx)     jset zulu-javafx-15.28.51 ;;
+        *)   	  echo -e "\033[35mAvailable JDKs and their option.\nChoose the appropriate option:\n
 8    -->  java-8-openkjdk
 11   -->  11.0.6.j9-adpt
 12   -->  java-12-jdk
@@ -212,6 +303,6 @@ case  $1 in
 15   -->  java-15-jdk
 15fx -->  zulu-javafx-15.28.51
 * e.g ->  $0 11" ;;
-esac ;}
+    esac ;
+}
 
-helper

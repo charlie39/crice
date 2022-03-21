@@ -4,7 +4,7 @@ icon=/usr/share/icons/Adwaita/32x32/legacy/network-wired-disconnected.png
 temp=/tmp/pingResult
 ping -c 1 1.1.1.1 2> $temp
 if [ -f $temp ]; then
-    notify-send -i $icon  "Error" "$(cat $temp)"
+    notify-send -i $icon  "Error" "$(cat $temp | sed 's/ping: connect://g')"
     rm $temp
     exit 1
 else

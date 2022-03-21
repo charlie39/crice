@@ -14,6 +14,7 @@
 #
 # ------------------------------------------------------------------------------
 
+
 __qii-replace-buffer() {
     local old=$1 new=$2 space=${2:+ }
     if [[ ${#LBUFFER} -le ${#old} ]]; then
@@ -52,9 +53,31 @@ qii-command-line() {
     elif [[ $BUFFER = p\ -Qii\ * ]]; then
         __qii-replace-buffer "p -Qii" ""
     else
-           [[ "$(p -Qqo $LBUFFER)" ]] && LBUFFER="p -Qii $(p -Qqo $LBUFFER 2>/dev/null)" && return
-           LBUFFER=""
-
+       result=$(p -Qqo $LBUFFER 2>&1)
+       if [[ $result =~ error* ]];then
+           test=$(which $LBUFFER 2>&1)
+           if [[ $test =~ .*not.found ]];then
+               res=( $(command $LBUFFER 2>&1) )
+               if [[ $res =~ .*command\ not\ found* ]];then
+                   LBUFFER="$res"
+                   return
+               elif [[ $res =~ $LBUFFER.* ]];then
+                   LBUFFER=${res[@]:8}
+                   return
+               fi
+               LBUFFER="❌"
+               return
+           elif [[ $test =~ .*aliased.* ]];then
+               LBUFFER=$(alias $LBUFFER)
+               return
+           fi
+           LBUFFER=$test
+           return
+       else
+           LBUFFER="p -Qii $result"
+           return
+       fi
+       LBUFFER="$result"
     fi
 
     # Preserve beginning space

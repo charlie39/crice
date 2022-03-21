@@ -42,7 +42,6 @@ sudo-command-line() {
             local EDITOR="$cmd"
         fi
     fi
-
     if [[ -n $EDITOR && $BUFFER = $EDITOR\ * ]]; then
         __sudo-replace-buffer "$EDITOR" "sudoedit"
     elif [[ -n $EDITOR && $BUFFER = \$EDITOR\ * ]]; then
