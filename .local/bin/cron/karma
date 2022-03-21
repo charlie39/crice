@@ -1,0 +1,76 @@
+#!/bin/sh
+
+playlist="Playlist"
+pattern="video"
+pattern2="video|audio|application|pdf|text|image"
+
+a=${@}
+
+if [ "${a[@]}" ]; then
+    for i in ${a[@]};do
+        if [[ $i =~ $pattern2 ]];then
+            pattern+=( $i )
+        fi
+        [ -d $i ] && path=( $i )
+        [[ $i =~ mv ]] && mv=1
+    done
+fi
+[ -z $path ] && empty=1 && path="/home/storage/Media/Videos/"
+
+arr=( $(find $(echo $path) -type f| sed 's/ /;/g') )
+for k in ${arr[@]};do
+    j=$(echo $k | sed 's/;/ /g')
+    pat=$(file -ib "${j}" | cut -d';' -f1)
+    for p in ${pattern[@]};do
+        if [[ $pat =~ $p ]];then
+            if [[ $pat =~ video/* ]];then
+                [[ $pat =~ video/x-matroska ]] && arr2+=( "${k/%chk/mkv}")  && continue # echo "$pat - $k"
+                [[ $pat =~ video/mp4 ]] && arr2+=( "${k/%chk/mp4}") && continue # echo "$pat - $k"
+                [[ $pat =~ video/x-msvideo ]] && arr2+=( "${k/%chk/avi}") && continue # echo "$pat - $k"
+            fi
+            if [[ $pat =~ text/* ]];then
+                [[ $pat =~ text/plain ]] && arr2+=( ${k/%.chk/} ) && continue # echo "$pat - $k"
+                [[ $pat =~ text/html ]] && arr2+=( ${k/%.chk/html} ) && continue # echo "$pat - $k"
+                [[ $pat =~ text/x-script.python ]] && arr2+=( ${k/%.chk/py} ) && continue # echo "$pat - $k"
+                [[ $pat =~ text/x-java ]] && arr2+=( ${k/%chk/java} ) && continue # echo "$pat - $k"
+                [[ $pat =~ text/x-c ]] && arr2+=( ${k/%chk/c} ) && continue # echo "$pat - $k"
+            fi
+            if [[ $pat =~ image/* ]];then
+                [[ $pat =~ image/jpeg ]] && arr2+=( "${k/%chk/jpg}") && continue # echo "$pat - $k"
+                [[ $pat =~ image/png ]] && arr2+=( "${k/%chk/png}") && continue # echo "$pat - $k"
+                [[ $pat =~ image/gif ]] && arr2+=( "${k/%chk/gif}") && continue # echo "$pat - $k"
+                [[ $pat =~ image/svg* ]] && arr2+=( "${k/%chk/svg}") && continue # echo "$pat - $k"
+            fi
+            if [[ $pat =~ application/* ]];then
+                [[ $pat =~ application/pdf ]] && arr2+=( "${k/%chk/pdf}") && continue # echo "$pat - $k"
+                [[ $pat =~ application/json ]] && arr2+=( "${k/%chk/json}") && continue # echo "$pat - $k"
+                [[ $pat =~ application/zstd ]] && arr2+=( "${k/%chk/zstd}") && continue # echo "$pat - $k"
+                [[ $pat =~ application/gzip ]] && arr2+=( "${k/%chk/gz}") && continue # echo "$pat - $k"
+                [[ $pat =~ application/x-xz ]] && arr2+=( "${k/%chk/xz}") && continue # echo "$pat - $k"
+                [[ $pat =~ application/x-sharedlib ]] && arr2+=( "${k/%chk/so}") && continue # echo "$pat - $k"
+                [[ $pat =~ application/.*officedocument* ]] && arr2+=( "${k/%chk/docx}" ) && continue # echo "$pat - $k"
+                [[ $pat =~ application/.*opendocument* ]] && arr2+=( "${k/%chk/odt}") && continue # echo "$pat - $k"
+                if [[ $pat =~ application/octet-stream ]];then
+                    f=$(file -b "${j}")
+                    [[ "${f}" =~ .*E-book* ]] && arr2+=( "${k/%chjj/epub}") && continue # echo "$pat - $k"
+                    [[ "${f}" == "data" ]] && arr2+=( "${k/%chk/sig}") && continue # echo "$pat - $k"
+                elif [[ $pat =~ application/* ]];then
+                    arr2+=( "${k/%chk/bin}") && continue # echo "$pat - $k"
+                fi
+            fi
+        fi
+    done
+done
+
+if (( empty )); then
+     echo ${arr2[@]} | tr ' ' '\n' | sed 's/^/\"/;s/$/\"/;s/;/ /g' > $path/Playlist.m3u8
+     notify-send "$(echo $path/Playlist) updated"
+     exit
+elif (( mv ));then
+    for i in "${arr2[@]}";do
+        f=$(echo $i | sed 's/\(chk\)\(\..*$\)/\1/')
+        mv $f ${i/chk./}
+    done
+fi
+
+[ "${arr2[0]}" ] && echo ${arr2[@]} | tr ' ' '\n' | sed 's/^/\"/;s/$/\"/;s/;/ /g' > $path/$playlist.m3u8
