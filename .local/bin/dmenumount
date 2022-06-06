@@ -30,7 +30,7 @@ mountusb() { \
 mountandroid() { \
 	chosen=$(echo "$anddrives" | $DMENU -i -p "Which Android device?" | cut -d : -f 1)
 	getmount "$HOME -maxdepth 3 -type d"
-        simple-mtpfs --device "$chosen" -o nonempty,kernel_cache,uid=1000,gid=1000,umask=002 "$mp"
+    simple-mtpfs --device "$chosen" -o nonempty,kernel_cache,uid=1000,gid=1000,umask=002 "$mp"
 	echo "OK" | $DMENU -i -p "Tap Allow on your phone if it asks for permission and then press enter"
 	simple-mtpfs --device "$chosen" -o nonempty,kernel_cache,uid=1000,gid=1000,umask=002 "$mp"
 	notify-send "🤖 Android Mounting" "Android device mounted to $mp."

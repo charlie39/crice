@@ -138,6 +138,15 @@
     appname = mbsync
     format = "<b>%a</b>\n<i>%s</i>"
 
+[phone]
+    appname = Messagi
+    timeout = 8
+
+[True Caller]
+    appname = Truecaller
+    timeout = 8
+
+
 [layout]
     appname = layout
     format = <i>%s</i>

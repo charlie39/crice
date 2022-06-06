@@ -25,9 +25,10 @@ width="$2"           # Width of the preview pane (number of fitting characters)
 height="$3"          # Height of the preview pane (number of fitting characters)
 cached="$4"          # Path that should be used to cache image previews
 preview_images="$5"  # "True" if image previews are enabled, "False" otherwise.
-
 maxln=200    # Stop after $maxln lines.  Can be used like ls | head -n $maxln
 
+
+/bin/echo "$path -> $cached" >> /home/charlie/rangercached
 # Find out something about the file:
 mimetype=$(file --mime-type -Lb "$path")
 extension=$(/bin/echo "${path##*.}" | awk '{print tolower($0)}')
@@ -117,5 +118,3 @@ case "$mimetype" in
         # Use sed to remove spaces so the output fits into the narrow window
         try mediainfo "$path" && { dump | trim | sed 's/  \+:/: /;';  exit 5; } || exit 1;;
 esac
-
-egiftasfxit 1

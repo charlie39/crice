@@ -24,6 +24,7 @@ ZSH_WEB_SEARCH_ENGINES=(
 
 
   plugins=(git
+  aws
   adb
   man
   ownr
@@ -61,8 +62,8 @@ setopt autocd		# automatically cd into typed direcotry
 source $ZSH/oh-my-zsh.sh
 
 #History for zsh
-HISTSIZE=10000
-SAVEHIST=10000
+HISTSIZE=30000
+SAVEHIST=30000
 HISTFILE=~/.cache/zsh/history
 
 # Load aliases and shortcuts if exist.

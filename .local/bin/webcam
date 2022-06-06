@@ -1,5 +1,7 @@
 #!/bin/sh
 fuser -s /dev/video0
 [ $? ] && fuser -k /dev/video0 && exit
-mpv  --title=webcam /dev/video0
+[[ $VPLAYER == mpv ]] && opt="--title=webcam "
+[[ $VPLAYER == vlc ]] && opt="v4l2://"
+$VPLAYER $opt/dev/video0
 # mpv --no-cache --no-osc --no-input-default-bindings --input-conf=/dev/null --title=webcam $(ls /dev/video[0,2,4,6,8] | tail -n 1)

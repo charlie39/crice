@@ -12,7 +12,7 @@ return require('packer').startup(function(use)
 
 use { plugin_path..'/vim-surround' , opt = true  }
 use { plugin_path..'/Kommentary' , opt = true  }
-
+use { 'glacambre/firenvim', opt = true, run = function() vim.fn['firenvim#install'](0) end }
 use { 'nvim-lua/lsp-status.nvim', opt = true }
 use { plugin_path..'/fzf.vim' , opt = true  }
 use { plugin_path..'/base16-vim' , opt = true  }

@@ -4,7 +4,7 @@
 #   					Files and Directories
 #-------------------------------------------------------------------------------------------------------------------------------
 #helper function ----------------------------------------------------------------------------
-dynamic() {
+__dynamic() {
     a=( "${@}" )
     lo=${a[${#a[@]}]}
     if [[ $lo =~ [0-9] ]];then
@@ -18,7 +18,7 @@ dynamic() {
     fi
 }
 
-helper() {
+__helper() {
 	if [ -S "$NVIM_LISTEN_ADDRESS" ]; then
 		if [ "$(pgrep nvim)" ] ; then
 			EDITOR="nvr --remote-silent"
@@ -37,7 +37,7 @@ helper() {
 pics() {
     opt=~pp/
     md=5
-    dynamic "$@"
+    __dynamic "$@"
     find $(echo $opt) -maxdepth $md -iregex ".*\.\(png\|jpg\|jpeg\|bmp\|gif\|svg\)" 2>/dev/null |\
     fzf --preview 'chafa -f symbols -s 60 {}' --keep-right \
     --bind 'alt-Y:execute-silent(echo {} | xclip -sel c)+abort'\
@@ -49,10 +49,10 @@ pics() {
 
 #editing scripts and files {local}
 function el {
-    helper
+    __helper
     opt=( ~cf/ ~pr/ ~sb/ ~vvt/ ~pjg/ ~/vimwiki/ )
     md=5
-    dynamic "$@"
+    __dynamic "$@"
     find $(echo $opt) -maxdepth $md -type f -o -type l 2>/dev/null |\
         fzf  --bind 'ctrl-x:execute-silent(echo {} | xclip -sel p)+abort'\
         --bind 'ctrl-alt-x:execute-silent(cat {}|xclip -sel p)+abort'\
@@ -66,7 +66,7 @@ function el {
 eg() {
     opt=(/etc /var /usr)
     md=7
-    dynamic "$@"
+    __dynamic "$@"
     sudo find $(echo $opt) -maxdepth $md -type f  -path /home  -prune -o -print 2>/dev/null |\
         fzf  -m --layout reverse --info inline --preview 'bat --color always  {}' \
         --preview-window border --color 'fg:#bbccdd,fg+:#ddeeff,preview-bg:#000000,border:#332288' |\
@@ -75,7 +75,7 @@ eg() {
 
 #changing directory by file/directory name {local}
 function cdl {
-    cd "$(find  ~pr/ ~cf/ ~/.local/ ~/vimwiki/ -type d |\
+    cd "$(find  ~pr/ ~cf/ ~/.local/ ~/.cache/paru/ ~/vimwiki/ -type d |\
     fzf  --layout reverse --height 50% --info inline \
     --preview 'lsd --color=always --icon always {}')" ;\
 }
@@ -131,23 +131,19 @@ pacbrowse() { pacman -Qq | fzf -m --preview 'pacman -Qil {}' --layout=reverse --
 wt() {
     opt=(~vv/ ~M/)
     md=5
-    dynamic "$@"
+    __dynamic "$@"
     find -L $(echo $opt) -maxdepth $md | grep -F "$(find -L  $(echo $opt) -maxdepth $md |\
         egrep ".*\.[mawo].{2,3}" | cut -d'/' -f5- | sed -E 's/\..{2,5}$//' |\
     $DMENU -i -p "Pick a Video:" -l 25)"|awk -F '.' '$NF!="srt"&&FNR<=1&&NF>1'|\
     sed "s/'/\\\'/g" | tee >(xargs -I {} "$VPLAYER" {}) ;
 }
 
-naam() {
-    ext=$(echo $@ | rev | grep ^.*\. | rev)
-}
 
 #watch videos #rofi
 wtr() {
     opt=(~vv/ ~M/)
     md=5
-    name=
-    dynamic "$@"
+    __dynamic "$@"
     find -L $(echo $opt) -maxdepth $md | grep -F "$(find -L $(echo $opt) -maxdepth $md |\
     egrep ".*\.[mawo].{2,3}" |cut -d'/' -f5- | sed -E 's/\..{2,5}$//' |\
     rofi -lines 20 -width 60 -theme /usr/share/rofi/themes/lb -dmenu -i|\
@@ -169,22 +165,22 @@ fplay() {
 #read ebooks #$DMENU
 pdf() {
     opt=(~dp/)
-    dynamic "$@"
+    __dynamic "$@"
     find $(echo $opt) | grep "$( find $(echo $opt) -name "*.pdf" -exec  basename -s .pdf {} \; |\
     $DMENU -i -p "Pick a Book:" -l 20 | sed 's/[][]/\\\0/g' )" |\
-    awk -F '.' "FNR==1&&NF>1" | sed "s/'/\\\'/g" | tee >(xargs -I {} zathura {})
+    awk -F '.' "FNR==1&&NF>1" | sed "s/'/\\\'/g" | tee >(xargs -I {} $READER {})
 }
 
 #read ebooks #rofi
 pdfr() {
     opt=~dp/
     md=5
-    dynamic "$@"
+    __dynamic "$@"
     find $(echo $opt) -maxdepth $md 2>/dev/null |\
        egrep --color=auto --binary-files=text "$( find $(echo $opt) -maxdepth $md -name "*.pdf" -exec  basename -s .pdf {} \; 2>/dev/null |\
        rofi -lines 20 -width 60 -theme /usr/share/rofi/themes/gruvbox-dark-hard -dmenu -i |\
        sed 's/[][]/\\\0/g;s/(/\\\(/g;s/)/\\\)/g;s/$/\.pdf/' )" |\
-       awk -F '.' "FNR==1&&NF>1" | sed "s/'/\\\'/g" | tee >(xargs -r -I {} zathura {}) >(sed 's/^/\"/;s/$/\"/;s/\\//g')
+       awk -F '.' "FNR==1&&NF>1" | sed "s/'/\\\'/g" | tee >(xargs -r -I {} $READER {}) >(sed 's/^/\"/;s/$/\"/;s/\\//g')
 }
 
 bootnxt() {  efibootmgr | rg "$(efibootmgr | awk -F'* ' 'NR>3 {print $2}' | $DMENU -p "choose")" | sed 's/[^0-9]//g' | xargs -ro  sudo efibootmgr -n  ;}
@@ -207,24 +203,26 @@ gdrive2_download () {
 # 								VPN and DoH
 #-----------------------------------------------------------------------------------------------------------------
 
-ws_connect() {
+__ws_connect() {
 	[ "$1" = "best" ] && windscribe connect best && return
 	awk '!/*|\[/' ~/vimwiki/ws-vpn-servers.md |\
         $DMENU -i -p "Pick your server:" -l 26 |\
         awk 'FNR==1&&NF>1 {print}' | cut -c23-26 |\
         tr -d ' ' | xargs -I {} windscribe connect {}  2>/dev/null ;}
 
+# manage windscribe VPN
 ws() {
 	case "$1" in
 		h) windscribe --help ;;
 		*) if [ "$(pgrep windscribe)" ] ; then
 			 [[ "$1" == "disconnect" ]] && windscribe disconnect && sudo systemctl stop windscribe && return
-			ws_connect "$1"
-		   else (sudo systemctl start windscribe && printf '%20s' 'VPN Server booting.. Give it 10 sec' && sleep 10 && ws_connect)
+			__ws_connect "$1"
+		   else (sudo systemctl start windscribe && printf '%20s' 'VPN Server booting.. Give it 10 sec' && sleep 10 && __ws_connect)
 		   fi ;;
 	esac
 }
 
+# change DNS server
 prx() {
 	 typeset -A proxyDNSs nsglobal
 	 proxyDNSs=(
@@ -245,30 +243,34 @@ prx() {
 
 
 
-	 if [[ "$1" == "s" ]]; then
+     if [[ "$1" =~ (s|stop|kill) ]]; then
 		  if [ "$somebody" ]; then
-			  sudo pkill "$somebody" && (echo -e "# Generated by prx\nnameserver ${nsglobal[cloudflare3]}" | sudo tee /etc/resolv.conf) && return
+			  sudo pkill "$somebody" || exit
+              echo -e "# Generated by prx\nnameserver ${nsglobal[cloudflare3]}" | sudo tee /etc/resolv.conf
+              return
 		  else
 			  echo "No DNS server running on port 53"
 			  return
 		  fi
 	  elif [ "$1" != "" ]; then
-		  echo -e "invalid argument.\nprx [option]\nOption:\ns -- stop a running server\n"
+		  echo -e "invalid argument.\nprx [option]\nOption:\n[s|stop|kill] -- stop a running server\n"
 		  echo "Don't pass any argument to start a server"
 		  return
 	 fi
 
 	 [ "$somebody" ] && echo -e "$somebody is listening on port 53\nRun with 's' to stop it" && return
 
-	local proxy=""
-	 proxy=$(echo "${(@k)proxyDNSs}" |tr ' ' '\n' | $DMENU -i -p "Pick Your proxy server:" -l 2 | tr -d ' ')
+	local proxy=$(echo "${(@k)proxyDNSs}" |tr ' ' '\n' | $DMENU -i -p "Pick Your proxy server:" -l 2 | tr -d ' ')
 
 	 case $proxy in
-		Cloudflared)\
-			`echo $cmd` "${proxyDNSs[$proxy]}" && echo "Cloudflared started..." &&\
-			(echo -e "#Generated by prx\nnameserver 127.0.0.1" |sudo tee /etc/resolv.conf > /dev/null) ;;
-		NextDNS)\
-			`echo $cmd` "${proxyDNSs[$proxy]}" && sleep 3 && echo -e "NextDNS listening on port 53" ;;
+		Cloudflared)
+            `echo $cmd` "${proxyDNSs[$proxy]}" || ( echo "couldn't start proxy DNS server" && exit )
+             echo "Cloudflared started..."
+			 echo -e "#Generated by prx\nnameserver 127.0.0.1" |sudo tee /etc/resolv.conf > /dev/null ;;
+		NextDNS)
+            `echo $cmd` "${proxyDNSs[$proxy]}" || (echo "couldn't start proxy DNS server" && exit)
+             sleep 3
+             echo -e "NextDNS listening on port 53" ;;
 	esac ;
 	unset proxyDNSs nsglobal
 }
@@ -279,7 +281,7 @@ prx() {
 #------------------------------------------------------------------------------------------------------------
 
 
-jset() { local cmd='sudo archlinux-java set' && `echo $cmd` $1 && echo -e "\033[32m $(archlinux-java status | rg 'default' | cut -d'(' -f1) is set" ;}
+__jset() { local cmd='sudo archlinux-java set' && `echo $cmd` $1 && echo -e "\033[32m $(archlinux-java status | rg 'default' | cut -d'(' -f1) is set" ;}
 
 #select jdk
 cj() {
@@ -288,12 +290,12 @@ cj() {
     # done
 
     case  $1 in
-        8)  	  jset java-8-openjdk ;;
-        11)    	  jset 11.0.6.j9-adpt  ;;
-        12) 	  jset java-12-jdk ;;
-        12o)      jset java-12-openjdk ;;
-        15)	  jset java-15-jdk ;;
-        15fx)     jset zulu-javafx-15.28.51 ;;
+        8)  	  __jset java-8-openjdk ;;
+        11)    	  __jset 11.0.6.j9-adpt  ;;
+        12) 	  __jset java-12-jdk ;;
+        12o)      __jset java-12-openjdk ;;
+        15)	  __jset java-15-jdk ;;
+        15fx)     __jset zulu-javafx-15.28.51 ;;
         *)   	  echo -e "\033[35mAvailable JDKs and their option.\nChoose the appropriate option:\n
 8    -->  java-8-openkjdk
 11   -->  11.0.6.j9-adpt

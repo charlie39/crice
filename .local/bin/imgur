@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# set -x
+set -x
 # Imgur script by Bart Nagel <bart@tremby.net>
 # Improvements by Tino Sino <robottinosino@gmail.com>
 # Version 6 or more
@@ -107,7 +107,7 @@ function renew_access_token {
 # handler for renewal of account
 function handle_renew_access_token {
     data=$(renew_access_token)
-    if ! -z $data ;then
+    if ! [[ -z $data ]];then
         echo "$data" > ~/imgur.api.response.data
         if [ "$JSON" ]; then
             echo "$data" | jq '.data.error'
@@ -291,7 +291,7 @@ while [ $# -gt 0 ]; do
             error=true
             if [[ $statuscode =~ 40[013] ]];then
                 handle_renew_access_token
-                shift -1
+                shift 1
                 continue
             fi
             continue

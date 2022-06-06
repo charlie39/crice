@@ -77,7 +77,7 @@ ex=🎯:\
 if [ "$(tty)" = "/dev/tty1" ]; then
    if ! ps -e | grep -qw Xorg ; then
        if [[ "$XW" = "X" ]]; then
-            exec startx $XINITRC
+            exec startx "$XINITRC"
         elif ! [ "$(pidof river)" ]; then
            # exec ssh-agent river
            # exec ssh-agent sway

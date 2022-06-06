@@ -123,6 +123,7 @@ exe 'packadd Kommentary'
 exe 'packadd popfix'
 exe 'packadd vim-css-color'
 exe 'packadd vim-floaterm'
+exe 'packadd firenvim'
 
 exe 'packadd vim-bookmarks'
 exe 'packadd nvim-treesitter'

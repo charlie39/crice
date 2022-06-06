@@ -26,3 +26,6 @@ fi
 ! [ "$(pidof mpd)" ] && mpd &          # music player daemon-you might prefer it as a service though
 ! [ "$(pidof dwl)" ] && pgrep dunst && { pkill dunst && dunst & } || dunst >/dev/null &         # dunst for notifications
 ! [ "$(pidof udevmon)" ] && sudo nice -20 udevmon  2> ~/.config/interception-tools/udevmon.err 1> ~/.config/interception-tools/udevmon.log &
+
+/usr/lib/kdeconnectd &
+
