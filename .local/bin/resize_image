@@ -2,7 +2,7 @@
 #this is equivalent to 'Save for web' in Photoshop
 #$1 input file  path;$2 thumbnail width in pixel;$3 output folder
 
-mogrify -path "${3:-PWD}" \
+mogrify -path "${3:-$PWD}" \
         -filter Triangle \
         -define filter:support=2 \
         -thumbnail "${250:- $2}" \

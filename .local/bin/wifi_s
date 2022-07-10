@@ -1,30 +1,45 @@
 #!/usr/bin/sh
 
-#Connect to wifi with wpa_supplicant
-#Your wifi interface:
+# Author: charlie39( iamkg050392 at gmail dot com)
+# Github : https://github.com/charlie39
+
+# I release this script in the public domain
+# you can do whatever you like with it
+
+
+# your wifi interface:
 Interface="wlo1"
 
-#Your DHCP client:e.g - dhcpcd,dhclient
+#y our DHCP client:e.g - dhcpcd,dhclient
 dhcpclient="dhcpcd"
 
-ADDR=192.168.43.168
 
-#path to your wpa_supplicant.conf
+# path to your wpa_supplicant.conf
 WPA_SUPPLICANTCONF=$HOME/.config/wpa/wpa_supplicant.conf
 # mkdir -p "$WPA_SUPPLICANTCONF"
 
-#1. make sure interface is not blocked:
+#Path to a wifi icon
+WIFI_ICON="/usr/share/icons/Pop/32x32/devices/network-wireless.png"
+
+# make sure interface is not blocked:
 sudo rfkill unblock "$(rfkill|grep wlan|cut -d' ' -f2)"
 
-#2. initiate the interface:
+# initiate the interface:
 [ "$(grep $Interface <(ip link show up ))" ] || sudo ip link set $Interface  up
-#or
-#ifconfig wlo1 up
 
-#3. get SSID: sudo:
-#iwlist scan | grep SSID
+# you can install wireless_tools and get the SSIDs of available networks
+# iwlist scan | grep SSID
 
-usage() {
+check() {
+    type $1 > /dev/null || { echo "$1 is installed" && exit 1 ; }
+}
+
+check wpa_supplicant
+check $dhcpclient
+check ip
+type notify-send >/dev/null && notify=1
+
+help() {
 
     cat <<END
     $(figlet $(basename $0))
@@ -42,12 +57,26 @@ END
 exit 0
 }
 
+#Generate new network/password by passing n
+new_connection() {
+   (( don )) || return
+    read -r -p "Entere the SSID: " SSID
+    __asterisk_prompt_for_passphrase
+    read -r -p "Would you like to control wpa_supplicant with its frontend tool wpa_cli?(y/N) " YesNo
+    [[ $YesNo =~ [Yy] ]] && echo -e "ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=$USER" >  "$WPA_SUPPLICANTCONF"
+    [[ $SSID ]] && wpa_passphrase "$SSID" "$passphrase" >> "$WPA_SUPPLICANTCONF"
+    (( $(pgrep  wpa_supplicant) )) && terminate
+    don=1
+    unset YesNo
+    main
+
+}
 
 # Teminate connection
 terminate() {
-    sudo wpa_cli terminate $Interface
-    sudo pkill $dhcpcclient
-    exit 1
+    sudo pkill -KILL $dhcpclient
+    sudo wpa_cli terminate $Interface && (( notify )) && notify-send -u low -i $WIFI_ICON "" "$Interface is disconnected"
+    exit
 }
 
 #generate asterisk for passphrase prompt
@@ -75,22 +104,42 @@ __asterisk_prompt_for_passphrase() {
 main() {
 
     #you may require to mention a driver wrapper with -D nl80211,wext. Refer wpa_supplicant(8)
-    [ "$(sudo wpa_supplicant -c "$WPA_SUPPLICANTCONF" -i"$Interface" -B)" ] || echo "WPA Supplicant returned error $?"
-
-    echo "WIFI Connection Established!.Checking DHCP..."
+    [ $( pgrep wpa_supplicant ) ] || { sudo wpa_supplicant -c "$WPA_SUPPLICANTCONF" -i"$Interface" -B && exit_code=$? ; }
+    if [[ $exit_code -eq 0 ]];then
+	    echo "wpa supplicant initialised"
+    elif [[ -n $exit_code ]]; then
+	    echo "wpa supplicant initialisation error: $exit_code"
+	    exit 1
+    fi
 
     #6. If dhcp client is not running, start it to get a lease:
     if [[ $(pidof $dhcpclient) ]]; then
         sudo $dhcpclient -k $Interface
         sudo $dhcpclient $Interface
     else
+	echo "starting $dhcpclient ..."
+	echo "scanning for network..."
         sudo $dhcpclient $Interface
+	e_status=$?
+	if [[ $e_status  -eq 1 ]]; then
+		(( notify )) && notify-send -u low -i $WIFI_ICON "No wifi found" "Check and confirm the network is visible"
+		echo "No wifi network found"
+		exit 1
+	elif [[ $e_status -ne 0 ]]; then
+		(( notify )) && notify-send -u low -i $WIFI_ICON "Wifi problem" "Couldn't initiate connection : $e_status "
+		exit $?
+	fi
+	echo "$dhcpcclient started!"
     fi
-    echo "starting $dhcpclient ..."
-    echo "$dhcpcclient started!"
+    echo "  Connection established"
+    (( notify )) && notify-send -u low -i $WIFI_ICON " " "Connection established"
     unset dhcpclient Interface
 
-    ping google.com -c 1 &>/dev/null && notify-send "Network is up" "enjoy"
+    if ping google.com -c 1 &>/dev/null; then
+        (( notify )) && notify-send -u low -i $WIFI_ICON "Network is up" "enjoy 🙂"
+        return 0
+    fi
+    (( notify )) && notify-send -u low -i $WIFI_ICON "😢" "Can't ping google"
 }
 
 #4. generate wpa_supplicant.conf with SSID and passphrase if it doesn't already exist:
@@ -116,20 +165,6 @@ if ! [ -s "$WPA_SUPPLICANTCONF" ]; then
     fi
 fi
 
-#Generate new network/password by passing n
-new_connection() {
-   (( don )) || return
-    read -r -p "Entere the SSID: " SSID
-    __asterisk_prompt_for_passphrase
-    read -r -p "Would you like to control wpa_supplicant with its frontend tool wpa_cli?(y/N) " YesNo
-    [[ $YesNo =~ [Yy] ]] && echo -e "ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=$USER" >  "$WPA_SUPPLICANTCONF"
-    [[ $SSID ]] && wpa_passphrase "$SSID" "$passphrase" >> "$WPA_SUPPLICANTCONF"
-    (( $(pgrep  wpa_supplicant) )) && terminate
-    don=1
-    unset YesNo
-    main
-
-}
 
 
 OPT=$(getopt -o :hntv --long :help,new,term,verbose -a -n 'wifi_s' -- "$@")
@@ -138,11 +173,10 @@ unset OPT
 
 while true;do
     case $1 in
-        -h|--help) usage ;shift ;;
+        -h|--help) help $1 ;shift ;;
         -n|--new) new_connection ;shift ;;
         -t|--term) terminate ; shift ;;
         -v|--verbose) set -x;shift ;;
         *) main;break;;
     esac
 done
-

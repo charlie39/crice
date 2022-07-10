@@ -7,6 +7,18 @@
 # Add this when you include flatpak in your system
 #dbus-update-activation-environment --systemd DBUS_SESSION_BUS_ADDRESS DISPLAY XAUTHORITY
 
+: ' mpv --fullscreen \
+    --no-input-default-bindings \
+    --no-config \
+    --on-all-workspaces \
+    ~/Videos/mission-imp.mp4 &
+sleep 20
+ '
+# kdeconnect
+! [ "$(pidof sway)" ] && setbg &          # set wallpaper both for X and wayland except sway cuz it has its own wallpaper setting
+! [ "$(pidof mpd)" ] && mpd &          # music player daemon-you might prefer it as a service though
+! [ "$(pidof dwl)" ] && pgrep dunst && { pkill dunst && dunst & } || dunst >/dev/null &         # dunst for notifications
+/usr/lib/kdeconnectd &
 
 if [ $(pgrep Xorg) ];then
     # Speed xrate up
@@ -15,6 +27,24 @@ if [ $(pgrep Xorg) ];then
     unclutter &		# Remove mouse when idle
     xset r rate 300 50
     ! [ "$(pgrep mpd-module-up)" ] && mpd-module-update  &	# Check for when to update the mpd module
+    # Idle trigger
+    xidlehook \
+    --not-when-fullscreen \
+    --not-when-audio \
+    --socket $XIDLESOCK \
+    --timer 240 \
+        'xrandr --output "${PRIMARY_DISPLAY:-eDP1}" --brightness .1' \
+        'xrandr --output "${PRIMARY_DISPLAY:-eDP1}" --brightness 1' \
+    --timer 10 \
+        'xset dpms force off;xrandr --output "${PRIMARY_DISPLAY:-eDP1}" --brightness 1;i3lock -e -f -i $HOME/Pictures/Wallpapers/Arch-Dark/Kali-linux-themed-arch-1920x1080.jpg' \
+        '' \
+    --timer 3600 \
+        'systemctl suspend'  \
+        '' &
+
+    ssh-agent dwm
+    # ssh-agent i3
+    # ssh-agent bspwm
 else
     if ! [ "$(pidof sway)" ] && ! [ "$(pidof waybar)" ] && ! [ "$(pidof wayfire)" ];then
         waybar &
@@ -22,10 +52,6 @@ else
     foot --server &>/dev/null &
     ! [ "$(pgrep clipmangr)" ] && clipmangr daemon &
 fi
-! [ $(pidof sway) ] && setbg &          # set the background with the `setbg` script
-! [ "$(pidof mpd)" ] && mpd &          # music player daemon-you might prefer it as a service though
-! [ "$(pidof dwl)" ] && pgrep dunst && { pkill dunst && dunst & } || dunst >/dev/null &         # dunst for notifications
-! [ "$(pidof udevmon)" ] && sudo nice -20 udevmon  2> ~/.config/interception-tools/udevmon.err 1> ~/.config/interception-tools/udevmon.log &
 
-/usr/lib/kdeconnectd &
+
 

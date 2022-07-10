@@ -1,0 +1,17 @@
+local g = vim.g
+g['neovide_transparency']=0.7
+g['neovide_no_idle']=true
+g['neovide_remember_window_size']=true
+g['neovide_antialiasing']=true
+g['neovide_cursor_vfx_mode']='railgun'
+g['neovide_cursor_vfx_opacity']=150.0
+g['neovide_cursor_vfx_particle_lifetime']=3.0
+g['neovide_cursor_vfx_particle_density']=12.2
+g['neovide_cursor_vfx_particle_speed']=10.0
+g['neovide_cursor_vfx_particle_phase']=1.2
+-- g['neovide_fullscreen']=true
+-- g['neovide_cursor_vfx_mode']='torpedo'
+-- g['neovide_cursor_vfx_mode']='pixiedust'
+-- g['neovide_cursor_vfx_mode']='ripple'
+-- g['neovide_cursor_vfx_mode']='sonicboom'
+-- g['neovide_cursor_vfx_mode']='wireframe'

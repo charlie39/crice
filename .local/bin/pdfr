@@ -1,0 +1,83 @@
+#!/bin/bash
+
+theme="/usr/share/rofi/themes/gruvbox-dark-hard"
+ROFI=( rofi -i -dmenu -theme "$theme" )
+# ROFI=( rofi -i -dmenu -theme )
+if [ -z "$DISPLAY" ]; then
+    ROFI=(fzf)
+    READER=(less)
+fi
+__dynamic() {
+    a=( "${@}" )
+    last_opt=${a[${#a[@]}]}
+    if [[ $last_opt =~ [0-9] ]];then
+        md=$last_opt
+        if [ "$#" -gt 1 ];then
+            a[$#]=""
+            opt=( ${a[@]} )
+        fi
+    elif [[ $# -ge 1 ]];then
+        opt=( ${a[@]} )
+    fi
+}
+
+main() {
+    f="${*}"
+   ! [ -f "${f}" ] && exit 1
+
+   [ "$2" = "pipe" ] && pipe=1
+
+    file_fmt=$(file --mime-type -b "${f}")
+
+    if [[ $file_fmt =~ pdf$ ]] || [[ $file_fmt =~ epub* ]]; then
+        (( pipe )) && echo "${f}" && exit 1
+        $READER "${f}"
+        exit 0
+    fi
+
+    ZACACHEDIR="$XDG_CACHE_HOME/zathura"
+    pdffile="$(cksum "${f}" | awk -F' ' '{print $1 $2}')"$(basename "${f}")
+    pdffile="$(echo $pdffile |rev | cut -d'.' -f2-| rev |tr ' ' -d )"".pdf"
+
+    if [ -f $ZACACHEDIR/$pdffile ]; then
+        (( pipe )) && echo $ZACACHEDIR/$pdffile && exit 1
+         $READER $ZACACHEDIR/$pdffile
+         exit 0
+    fi
+
+    if [[ $file_fmt =~ mobipocket* ]] || ( [[ "$file_mt" = "application/octet-stream" ]] && expr "$file" : "^.*\.mobi$" ) ;then
+        ebook-convert "${f}" $ZACACHEDIR/$pdffile >/dev/null
+    elif [ "$file_fmt" = "text/plain" ] && expr "$f" : "^.*\.md$" ; then
+        # pandoc --pdf-engine=xelatex "${f}" -V mainfont:"DejaVu Serif" -o $ZACACHEDIR/$pdffile &>/dev/null
+        pandoc "${f}" --pdf-engine=xelatex -V mainfont:"DejaVu Serif" \
+            -V sansfont:"DejaVu Sans" -V monofont:"DejaVu Sans Mono" \
+            -o $ZACACHEDIR/$pdffile
+
+            # -V mathfont:"DejaVu Math Tex Gyre" \
+            # -V mainfontoptions:"UprightFont=*, BoldFont=*-Bold, ItalicFont=*-Italic, BoldItalicFont=*-BoldItalic"\
+    elif [ "$file_fmt" = "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ] || \
+     [ "$file_fmt" = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ] || \
+     [ "$file_fmt" = "application/vnd.openxmlformats-officedocument.presentationml.presentation" ] || \
+     [ "$file_fmt" = "application/msword" ] || \
+     [ "$file_fmt" = "application/vnd.ms-excel" ] || \
+     [ "$file_fmt" = "application/vnd.ms-powerpoint" ] || \
+     [ "$file_fmt" = "application/vnd.oasis.opendocument.text" ] || \
+     [ "$file_fmt" = "application/vnd.oasis.opendocument.spreadsheet" ] || \
+     [ "$file_fmt" = "application/vnd.oasis.opendocument.presentation" ] || \
+     [ "$file_fmt" = "text/csv" ]; then
+        libreoffice --headless --convert-to pdf --outdir $ZACACHEDIR/$pdffile
+    fi
+    (( pipe )) && echo $ZACACHEDIR/$pdffile && exit 1
+    [ -f $ZACACHEDIR/$pdffile ] && "$READER" $ZACACHEDIR/$pdffile
+    return
+}
+
+opt=~/Documents/PDF/
+md=5
+__dynamic "$@"
+file="$(find $(echo $opt) -maxdepth $md 2>/dev/null |\
+egrep --binary-files=text "$( find $(echo $opt) -maxdepth $md -regextype egrep -iregex ".*\.(pdf|epub|mobi|azw3|md|docx|xls|ppt)" -exec  basename -s .pdf {} \; 2>/dev/null |\
+"${ROFI[@]}" | sed 's/[]()[]/\\\0/g' )" |\
+awk -F '.' 'FNR==1&&NF>1{gsub("\047","\\\047");print}' )"
+
+main $file

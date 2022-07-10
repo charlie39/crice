@@ -1,0 +1,7 @@
+DISPLAY=wayland
+MOZ_ENABLE_WAYLAND=1
+QT_QPA_PLATFORM=wayland
+SDL_VIDEODRIVER=wayland
+DMENU=bemenu
+GDK_BACKEND=wayland
+TERMINAL=footclient

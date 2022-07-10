@@ -23,10 +23,12 @@ opt('o', 'splitbelow', true)              -- Put new windows below current
 opt('o', 'splitright', true)              -- Put new windows right of current
 opt('o', 'termguicolors', true)           -- True color support
 opt('o', 'updatetime', 200)               -- Delay before swap file is saved
+-- opt('o', 'wildcharm', '<Tab>')       		  -- Command-line completion mode
+vim.cmd[[set wcm=<Tab>]]
 opt('o', 'wildmenu', true)       		  -- Command-line completion mode
 opt('o', 'wildmode', 'longest,full')      -- Command-line completion mode
 opt('o', 'wildoptions', 'pum')      	  -- Command-line completion mode
-opt('o', 'cursorline', true)              -- Highlight cursor line
+opt('w', 'cursorline', true)              -- Highlight cursor line
 opt('o', 'grepprg', 'rg --vimgrep -n --no-heading --smart-case', true)
 opt('o', 'cmdheight', 2)
 opt('w', 'shiftwidth', indent)            -- Size of an indent

@@ -23,6 +23,7 @@ bind index,pager g noop
 bind index,pager M noop
 bind index,pager C noop
 bind index gg first-entry
+bind index,pager \Cl show-log-messages
 macro index o "<shell-escape>mbsync -c $XDG_CONFIG_HOME/isync/mbsyncrc -V primary<enter>" "run mbsync to sync primary"
 
 unmailboxes *

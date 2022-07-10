@@ -2,8 +2,8 @@ local utils = require('utils')
 local map = utils.map
 
 
-
-map('n', '<leader>s', '<cmd>luafile $MYVIMRC<CR>')
+-- source init.lua
+map('n', '<leader>s', '<cmd>luafile %<CR>')
 
 --tab traversal
 map('n', 'tt', ' <cmd>tabnew<CR>')
@@ -28,28 +28,31 @@ map('i', 'jk', '<Esc>')
 map('i', 'kj', '<Esc>')
 map('n', '<A-TAB>', '<cmd>bnext<cr>')
 	-- " map <Shift><A-TAB> :bprev<cr>
-map('n', '<leader>b', '<cmd>ls<cr>:buffer<space>')
+-- map('n', '<leader>b', '<cmd>ls<cr>:buffer<space>')
 
--- "window resizing
+-- window resizing
 
-map('n', '<C-Left>', '<C-W><')
-map('n', '<C-Right>', '<C-W>>')
-map('n', '<C-Up>', '<C-W>+2')
-map('n', '<C-Down>', '<C-W>-2')
+map('n', '<C-Left>', '<C-W>>')
+map('n', '<C-Right>', '<C-W><')
+map('n', '<C-Up>', '<C-W>+3')
+map('n', '<C-Down>', '<C-W>-3')
 
-map('n', '<S-Left>', '<C-w>2-')
-map('n', '<S-Right>', '<C-w>2+')
-map('n', '<S-Down>', '<C-w>2<')
-map('n', '<S-Up>', '<C-w>2>')
+-- scrolling
+--
+map('n', '<S-Left>', '<C-w>2+')
+map('n', '<S-Right>', '<C-w>2-')
+map('n', '<S-Down>', '<C-w>2>')
+map('n', '<S-Up>', '<C-w>2<')
 
---split window navigation
+-- split window navigation
 map('n', '<C-h>', '<C-w>h')
 map('n', '<C-j>', '<C-w>j')
 map('n', '<C-k>', '<C-w>k')
 map('n', '<C-l>', '<C-w>l')
 
 --terminal special
-map('n', '<leader>t', '<cmd>terminal<CR>')
+map('n', '<leader>t', '<cmd>split | terminal<CR>')
+map('n', '<leader>vt', '<cmd>vsplit | terminal<CR>')
 
 --ranger
 map('n','<M-f>s','<cmd>split | term ranger<cr>')
@@ -57,15 +60,30 @@ map('n','<M-f>v','<cmd>vsplit | term ranger<cr>')
 map('n','<M-f>t','<cmd>tabe | term ranger<cr>')
 
 --Rnvimr
-map('','<M-F>','<cmd>RnvimrToggle<cr>')
+map('','<M-f>','<cmd>RnvimrToggle<cr>')
+
+map('t','<M-i>','<cmd>RnvimrResize<CR>')
+
+--  Resize floating window by special preset layouts
+map('t','<M-L>','<cmd>RnvimrResize 1,8,9,11,5<CR>')
+
+--  Resize floating window by single preset layout
+-- map('t','<M-Y>','<cmd>RnvimrResize 6<CR>')
+
 
 --multi-line
 -- map('', '<leader>v',[[vim.fn['sml#mode_on']()]])
+--
 --FZF
+map('n' ,'<leader>.','<cmd>LS<cr>')
+map('n' ,'<leader><leader>.' ,'<cmd>LS!<cr>')
+map('n' ,'<leader>m' ,'<cmd>LSv<cr>')
+map('n' ,'<leader><leader>m' ,'<cmd>LSv!<cr>')
+map('n' ,'<leader>zg' ,'<cmd>Rg<cr>')
+map('n' ,'<leader>zd' ,'<cmd>FZD<cr>')
 map('n', '<leader>F', '<cmd>Files<CR>')
 map('n', '<leader>G', '<cmd>Commits<CR>')
-map('n', '<leader>r', '<cmd>Rg<CR>')
-map('n', '<leader>b', '<cmd>ls<CR>:buffer<space>')
+map('n', '<leader>b', '<cmd>Buffers<CR>')
 map('n', '<leader><leader>c', '<cmd>Colors<CR>')
 
 -------------------- MAPPINGS ------------------------------

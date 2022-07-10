@@ -1,32 +1,24 @@
 #!/usr/bin/env bash
 
 # NOTE:
-# This doesn't work as is on Windows. You'll need to create an equivalent `.bat` file instead
-#
-# NOTE:
-# If you're not using Linux you'll need to adjust the `-configuration` option
-# to point to the `config_mac' or `config_win` folders depending on your system.
+JDTLS_CONFIG="/usr/share/java/jdtls/config_linux"
+JDTLS_PLUGINS="/usr/share/java/jdtls/plugins/"
+JAR=$JDTLS_PLUGINS"org.eclipse.equinox.launcher_*.jar"
 
-##for  CoC jdtls configuration, uncomment the following and use "$JDTLS_HOME/config_linux" as configuration argument
-
-# JDTLS_HOME="$HOME/.config/coc/extensions/coc-java-data/server"
-# JAR="$JDTLS_HOME/plugins/org.eclipse.equinox.launcher_1.5.700.v20200207-2156.jar"
-JAR=/usr/share/java/jdtls/plugins/org.eclipse.equinox.launcher_1.6.400.v20210924-0641.jar
-# GRADLE_HOME=$HOME/gradle /usr/lib/jvm/java-14-openjdk/bin/java \
-#For system
-
-java \
+GRADLE_HOME="$HOME/.local/lib/sdkman/candidates/gradle/current/bin/gradle" java \
+  -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=localhost:8000 \
   -Declipse.application=org.eclipse.jdt.ls.core.id1 \
+  -Xbootclasspath/a:$HOME/.local/lib/lombok/lombok.jar \
   -Dosgi.bundles.defaultStartLevel=4 \
   -Declipse.product=org.eclipse.jdt.ls.core.product \
   -Dlog.protocol=true \
   -Dlog.level=ALL \
   -Xms256M \
   -Xmx1G \
-  -jar "$JAR" \
-  -javaagent:/home/charlie/.local/lib/lombok/lombok.jar \
+  -jar $(echo "$JAR") \
+  -javaagent:$HOME/.local/lib/lombok/lombok.jar \
   -configuration "$JDTLS_CONFIG" \
-  -data "${1:-$HOME/trash/java}" \
+  -data "${1:-$HOME/.cache/jdtls_workspaces}" \
   --add-modules=ALL-SYSTEM \
   --add-opens java.base/java.util=ALL-UNNAMED \
   --add-opens java.base/java.lang=ALL-UNNAME

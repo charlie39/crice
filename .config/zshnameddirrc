@@ -10,6 +10,7 @@ hash -d dpPHP=~/Documents/PDF/PHP
 hash -d dpDO=~/Documents/PDF/DevOps
 hash -d dpSS=~/Documents/PDF/ShellScripting
 hash -d D=~/Downloads
+hash -d DS=~/Downloads/Shared
 hash -d DL=~/Downloads/Linux
 hash -d M=~/Music
 hash -d Mv=~/Music/videos

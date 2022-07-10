@@ -1,0 +1,19 @@
+#!/bin/sh
+
+email=$(abook --mutt-query $1 | cut -f1)
+h="$HOME/.abook"
+
+#generate an image of the text
+convert -size 276x40 -pointsize 18  -gravity center "label:$email" ~/.abook/t.svg
+
+#generate the qrcode
+qrencode "$email" -l H --size 10 -o $h/q.png
+
+#append the image to the qrcode
+convert -append $h/t.svg $h/q.png $h/f.png
+
+#display the image
+display -geometry +200+200 $h/f.png 2>/dev/null
+
+
+

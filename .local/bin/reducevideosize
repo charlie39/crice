@@ -1,0 +1,16 @@
+#!/bin/bash
+help() {
+echo : '#arguments:
+$1 - source
+$2 - codec . E.g. libx264,libx265
+$3 - output file
+ '
+exit
+}
+
+[ $1 = h ] && help
+[ -n $4 ] && out=$4 || out=$1
+codec=${2:-libx264}
+crf=${3:-20}
+echo
+ffmpeg -i "${1}" -vcodec $codec -crf $crf "${codec}-$crf-${out}"

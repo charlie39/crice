@@ -1,22 +1,29 @@
 #!/bin/sh
 set -x
+[ -z $DISPL! AY ] && DMENU=(fzf)
 # A dmenu wrapper script for system functions.
-WMcandidates=( i3 dwm river dwl bspwm )
-for i in "${WMcandidates[@]}" ; do
+WMs=( i3 dwm river dwl bspwm )
+for i in "${WMs[@]}" ; do
     [ "$(pgrep $i)" ] && WM=$i && break
 done
-lock=i3lock
-[ $XDG_SESSION_TYPE == "wayland" ] && lock="swaylock"
+lock="xidlehook-client --socket $XIDLESOCK control --action trigger --timer 1" #i3lock
+lock="slock"
+
+
+if [ $XDG_SESSION_TYPE = "wayland" ]; then
+     lock="swaylock"
+fi
 
 cmds="\
-Lock Screen  @$lock -e -f -i $HOME/Pictures/Wallpapers/Arch-Dark/Kali-linux-themed-arch-1920x1080.jpg
-Leave ${WM^^}    @kill -TERM $(pidof -s ${WM,,})
+Lock  @$lock
+Leave  ${WM^^}  @kill -TERM $(pidof -s ${WM,,})
 Refresh ${WM^^}  @kill -HUP $(pidof -s ${WM,,})
-Reboot	     @sudo -A reboot
-Shutdown     @sudo -A shutdown -h now
+Suspend @systemctl suspend
+Suspend-then-Hybernate @systemctl suspend-then-hybernate
+Hibernate   @systemctl hibernate
+Reboot  @sudo -A reboot
+Shutdown    @sudo -A shutdown -h now
 "
-
-choice="$(echo "$cmds" | cut -d'@' -f1 | $DMENU -p "Choose:")" || exit 1
+choice="$(echo "$cmds" | cut -d'@' -f1  | sed -r '/^\s*$/d;s/(^\s*|\s*$)//g' | ${DMENU[@]} -p "choose")" || exit 1
 readonly action="$(echo "$cmds" | grep "^$choice" |  cut -d'@' -f2 )"
 $action
-

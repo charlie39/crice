@@ -1,14 +1,22 @@
-#!/usr/bin/sh
-
+#!/usr/bin/bash
 #-------------------------------------------------------------------------------------------------------------------------------
 #   					Files and Directories
 #-------------------------------------------------------------------------------------------------------------------------------
-#helper function ----------------------------------------------------------------------------
+# setting up some environment variables depending on X,Wayland or terminal
+wtr_theme="/usr/share/rofi/themes/lb"
+ROFI=(rofi -i -dmenu -theme $wtr_theme)
+
+if [ -z $DISPLAY ]; then
+    READER="less"
+    ROFI=( fzf -m --preview "cat <(mediainfo {})" )
+fi
+
+# helper functions ----------------------------------------------------------------------------
 __dynamic() {
     a=( "${@}" )
-    lo=${a[${#a[@]}]}
-    if [[ $lo =~ [0-9] ]];then
-        md=$lo
+    last_opt=${a[${#a[@]}]}
+    if [[ $last_opt =~ [0-9] ]];then
+        md=$last_opt
         if [ "$#" -gt 1 ];then
             a[$#]=""
             opt=${a[@]}
@@ -18,37 +26,27 @@ __dynamic() {
     fi
 }
 
-__helper() {
-	if [ -S "$NVIM_LISTEN_ADDRESS" ]; then
-		if [ "$(pgrep nvim)" ] ; then
-			EDITOR="nvr --remote-silent"
-		else
-			rm $NVIM_LISTEN_ADDRESS
-		fi
-
-    elif [ "$(nvr --serverlist)" ]; then
-		if [ "$(pgrep nvim)" ] ; then
-			NVIM_LISTEN_ADDRESS="$(nvr --serverlist)"
-			EDITOR="nvr --remote-silent --servername $NVIM_LISTEN_ADDRESS"
-		fi
-	fi
+__helper () {
+    arr=( $(nvr --serverlist | awk 'BEGIN{RS="";FS="\n"}{print}') )
+    if [[ ${#arr[@]} -ge 1 ]];then
+        for i in "${arr[@]}"; do
+            if [ $i = $NVIM_LISTEN_ADDRESS ];then
+                EDITOR="nvr --remote-silent --servername $NVIM_LISTEN_ADDRESS"
+                Flag=1
+                break
+            fi
+        done
+        ! (( Flag )) || return 0
+        EDITOR="nvr --remote --servername $(nvr --serverlist | rofi  -theme /usr/share/rofi/themes/purple.rasi -dmenu -p "nvim servers" -i)"
+        if [ $(echo $EDITOR |awk '{print $NF}' ) = "--servername" ];then
+            EDITOR="nvim"
+        fi
+    fi
 }
 #-------------------------------------------------------------------------------------------
-pics() {
-    opt=~pp/
-    md=5
-    __dynamic "$@"
-    find $(echo $opt) -maxdepth $md -iregex ".*\.\(png\|jpg\|jpeg\|bmp\|gif\|svg\)" 2>/dev/null |\
-    fzf --preview 'chafa -f symbols -s 60 {}' --keep-right \
-    --bind 'alt-Y:execute-silent(echo {} | xclip -sel c)+abort'\
-    --bind 'alt-p:execute-silent(imv {})'\
-    --bind 'alt-P:execute-silent(cat {} |xclip -sel p)+abort' -m | xargs -I {} imv {} ;
-}
-# --bind 'ctrl-y:execute-silent(echo {} | xclip -sel p)+abort' -m  --layout reverse --info inline  --preview 'bat --color always -p  {}' --preview-window 60%:border --color 'fg:#bbccdd,fg+:#ddeeff,preview-bg:#000000,border:#332288'
-#change default OS for next boot
-
 #editing scripts and files {local}
 function el {
+    echo "k"
     __helper
     opt=( ~cf/ ~pr/ ~sb/ ~vvt/ ~pjg/ ~/vimwiki/ )
     md=5
@@ -58,8 +56,8 @@ function el {
         --bind 'ctrl-alt-x:execute-silent(cat {}|xclip -sel p)+abort'\
         --keep-right -m --preview 'bat --color always -p  {}' --preview-window 70%:border\
         --color 'fg:#bbccdd,fg+:#ddeeff,preview-bg:#000000,border:#332288' |\
-        xargs -r nvr --remote-silent ;\
-}
+        xargs -r -I {}  bash -c '$EDITOR {}' ; }
+        # xargs -rd $'\n' bash -c '$EDITOR $@;echo \""$@"|"' ; }
 
 # fzf --bind 'f1:execute(less -f  {}),ctrl-y:execute-silent(echo {} | xclip -sel p)+abort'
 #editing scripts and files {global}
@@ -73,6 +71,31 @@ eg() {
         xargs -r -I {} sudoedit {} ;\
 }
 
+pics() {
+    opt=~pp/
+    md=5
+    __dynamic "$@"
+    find $(echo $opt) -maxdepth $md -iregex ".*\.\(png\|jpg\|jpeg\|bmp\|gif\|svg\)" 2>/dev/null |\
+    fzf --preview 'chafa -f symbols -s 60 {}' --keep-right \
+    --bind 'alt-Y:execute-silent(echo {} | xclip -sel c)+abort'\
+    --bind 'alt-p:execute-silent(imv {})'\
+    --bind 'alt-P:execute-silent(cat {} |xclip -sel p)+abort' -m | xargs -I {} imv {} ;
+}
+
+#generate qrcode of any text
+qrcode() {
+    [[ $1 =~ ^f$ ]] && qrencode -l H --size 10  -r $2 -o - | display -geometry +200+200 -title "from $2" - 2>/dev/null  && return
+    [[ $1 =~ ^(p|c|s)$ ]] || { echo -e "${1}" | qrencode -l H --size 10 -o - | display -geometry +200+200 -title "$1" - 2>/dev/null && return ; }
+    xclip -o -sel $1 | qrencode -l H --size 10 -o - | display -geometry +200+200 -title "from clipboard" - 2>/dev/null  ;
+}
+
+#fetch lyrics
+lyrics() {
+    artist="${1}"
+    title="${2}"
+    lyricsAPI="https://makeitpersonal.co/lyrics/"
+    curl -s --get "$lyricsAPI" --data-urlencode "artist=$artist" --data-urlencode "title=$title"
+}
 #changing directory by file/directory name {local}
 function cdl {
     cd "$(find  ~pr/ ~cf/ ~/.local/ ~/.cache/paru/ ~/vimwiki/ -type d |\
@@ -127,30 +150,26 @@ pacbrowse() { pacman -Qq | fzf -m --preview 'pacman -Qil {}' --layout=reverse --
 #----------------------------------------------------------------------------------------------------------------
 # 									Misc
 #----------------------------------------------------------------------------------------------------------------
-#watch videos #$DMENU
-wt() {
-    opt=(~vv/ ~M/)
-    md=5
-    __dynamic "$@"
-    find -L $(echo $opt) -maxdepth $md | grep -F "$(find -L  $(echo $opt) -maxdepth $md |\
-        egrep ".*\.[mawo].{2,3}" | cut -d'/' -f5- | sed -E 's/\..{2,5}$//' |\
-    $DMENU -i -p "Pick a Video:" -l 25)"|awk -F '.' '$NF!="srt"&&FNR<=1&&NF>1'|\
-    sed "s/'/\\\'/g" | tee >(xargs -I {} "$VPLAYER" {}) ;
+__find_a() {
+    echo "${list[@]}" | tr ' ' '\n' | tr '%' ' '
 }
-
 
 #watch videos #rofi
 wtr() {
-    opt=(~vv/ ~M/)
-    md=5
+    local opt=(~vv/ ~M/) md=6
     __dynamic "$@"
-    find -L $(echo $opt) -maxdepth $md | grep -F "$(find -L $(echo $opt) -maxdepth $md |\
-    egrep ".*\.[mawo].{2,3}" |cut -d'/' -f5- | sed -E 's/\..{2,5}$//' |\
-    rofi -lines 20 -width 60 -theme /usr/share/rofi/themes/lb -dmenu -i|\
-    sed 's/$/./' )"| sed "s/'/\\\'/g"| awk -F '.' '$NF!="srt"&&FNR==1&&NF>1'|\
-    tee >(xargs -I {} "$VPLAYER" {}) >(sed 's/^/\"/;s/$/\"/;s/\\//g');
+    list=( $(find -L $(echo $opt)  -maxdepth $md -type f -size +1M | egrep ".*\.[mawo].{2,3}" | sed '/\.srt$/d' |tr ' ' '%') )
+    pattern=( $( __find_a | sed -E 's/^([^/]*\/){4}//;s/\..{2,5}$//' |  ${ROFI[@]} ) ) || return
+    __find_a | grep -F "${pattern}"| xargs -rd $'\n'  sh -c '"$VPLAYER" "$@";echo \""$@"\"' ''
 }
-
+# wtr() {
+#     local opt=(~vv/ ~M/) md=6
+#     __dynamic "$@"
+    # find -L $(echo $opt)  -maxdepth $md | grep -F "$(find -L $(echo $opt) -maxdepth $md -size +1M|\
+    # egrep ".*\.[mawo].{2,3}" |cut -d'/' -f5- | sed -E 's/\..{2,5}$//' | ${ROFI[@]} $wtr_theme |\
+    # sed 's/$/./' )"| awk -F '.' '!/\.srt$/&&FNR==1&&NF>1'|\
+    # xargs -rd $'\n'  sh -c '"$VPLAYER" "$@";echo \""$@"\"' ''
+# }
 fplay() {
     #run karma periodically to keep the playlist updated
     playlist=~/Videos/Playlist.m3u8
@@ -161,29 +180,6 @@ fplay() {
         xargs -r -I {} $VPLAYER {}
     echo $playlist
 }
-
-#read ebooks #$DMENU
-pdf() {
-    opt=(~dp/)
-    __dynamic "$@"
-    find $(echo $opt) | grep "$( find $(echo $opt) -name "*.pdf" -exec  basename -s .pdf {} \; |\
-    $DMENU -i -p "Pick a Book:" -l 20 | sed 's/[][]/\\\0/g' )" |\
-    awk -F '.' "FNR==1&&NF>1" | sed "s/'/\\\'/g" | tee >(xargs -I {} $READER {})
-}
-
-#read ebooks #rofi
-pdfr() {
-    opt=~dp/
-    md=5
-    __dynamic "$@"
-    find $(echo $opt) -maxdepth $md 2>/dev/null |\
-       egrep --color=auto --binary-files=text "$( find $(echo $opt) -maxdepth $md -name "*.pdf" -exec  basename -s .pdf {} \; 2>/dev/null |\
-       rofi -lines 20 -width 60 -theme /usr/share/rofi/themes/gruvbox-dark-hard -dmenu -i |\
-       sed 's/[][]/\\\0/g;s/(/\\\(/g;s/)/\\\)/g;s/$/\.pdf/' )" |\
-       awk -F '.' "FNR==1&&NF>1" | sed "s/'/\\\'/g" | tee >(xargs -r -I {} $READER {}) >(sed 's/^/\"/;s/$/\"/;s/\\//g')
-}
-
-bootnxt() {  efibootmgr | rg "$(efibootmgr | awk -F'* ' 'NR>3 {print $2}' | $DMENU -p "choose")" | sed 's/[^0-9]//g' | xargs -ro  sudo efibootmgr -n  ;}
 
 #download large files from google drive #WIP
 gdrive_download () {
@@ -204,11 +200,13 @@ gdrive2_download () {
 #-----------------------------------------------------------------------------------------------------------------
 
 __ws_connect() {
-	[ "$1" = "best" ] && windscribe connect best && return
-	awk '!/*|\[/' ~/vimwiki/ws-vpn-servers.md |\
-        $DMENU -i -p "Pick your server:" -l 26 |\
+	[ "${1}" = "best" ] && windscribe connect best && return
+    ! [ -z "$DISPLAY" ] && DMENU+=(-l 25)
+        awk '!/*|\[/' ~/vimwiki/ws-vpn-servers.md |\
+        "${DMENU[@]}"  |\
         awk 'FNR==1&&NF>1 {print}' | cut -c23-26 |\
-        tr -d ' ' | xargs -I {} windscribe connect {}  2>/dev/null ;}
+        tr -d ' ' | xargs -I {} windscribe connect {}  2>/dev/null
+    }
 
 # manage windscribe VPN
 ws() {
@@ -224,6 +222,7 @@ ws() {
 
 # change DNS server
 prx() {
+    [ $DISPLAY = "wayland" ] && DMENU=(bemenu ) || ([ -z $DISPLAY ] && DMENU=(fzf) || DMENU=(dmenu ) )
 	 typeset -A proxyDNSs nsglobal
 	 proxyDNSs=(
 		 ['NextDNS']="nextdns"
@@ -260,7 +259,7 @@ prx() {
 
 	 [ "$somebody" ] && echo -e "$somebody is listening on port 53\nRun with 's' to stop it" && return
 
-	local proxy=$(echo "${(@k)proxyDNSs}" |tr ' ' '\n' | $DMENU -i -p "Pick Your proxy server:" -l 2 | tr -d ' ')
+	local proxy=$(echo "${(@k)proxyDNSs}" |tr ' ' '\n' | $DMENU  | tr -d ' ')
 
 	 case $proxy in
 		Cloudflared)
@@ -281,7 +280,7 @@ prx() {
 #------------------------------------------------------------------------------------------------------------
 
 
-__jset() { local cmd='sudo archlinux-java set' && `echo $cmd` $1 && echo -e "\033[32m $(archlinux-java status | rg 'default' | cut -d'(' -f1) is set" ;}
+__jset() { local cmd='sudo archlinux-java set' && `echo $cmd` "${1}" && echo -e "\033[32m $(archlinux-java status | rg 'default' | cut -d'(' -f1) is set" ;}
 
 #select jdk
 cj() {
@@ -307,4 +306,3 @@ cj() {
 * e.g ->  $0 11" ;;
     esac ;
 }
-

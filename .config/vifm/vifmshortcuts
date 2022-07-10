@@ -43,6 +43,10 @@ map gD :cd ~/Downloads<CR>
 map tD <tab>:cd ~/Downloads<CR><tab>
 map MD <tab>:cd ~/Downloads<CR><tab>:mo<CR>
 map YD <tab>:cd ~/Downloads<CR><tab>:co<CR>
+map gDS :cd ~/Downloads/Shared<CR>
+map tDS <tab>:cd ~/Downloads/Shared<CR><tab>
+map MDS <tab>:cd ~/Downloads/Shared<CR><tab>:mo<CR>
+map YDS <tab>:cd ~/Downloads/Shared<CR><tab>:co<CR>
 map gDL :cd ~/Downloads/Linux<CR>
 map tDL <tab>:cd ~/Downloads/Linux<CR><tab>
 map MDL <tab>:cd ~/Downloads/Linux<CR><tab>:mo<CR>
@@ -306,9 +310,7 @@ map cft :e ~/.config/tmux/tmux.conf<CR>
 map cfE :e ~/.config/ENV<CR>
 map cfv :e ~/.config/nvim/init.vim<CR>
 map cfl :e ~/.config/nvim/init.lua<CR>
-map cfx :e ~/.config/X11/xinitrc<CR>
 map cfX :e ~/.config/X11/Xresources<CR>
-map cfxp :e ~/.config/X11/xprofile<CR>
 map cfsf :e ~/.config/shell_functions<CR>
 map cfip :e ~/.config/inputrc<CR>
 map cfz :e $ZDOTDIR/.zshrc<CR>

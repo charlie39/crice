@@ -1,0 +1,10 @@
+#!/bin/zsh
+
+# Wrapper script around efibootmgr to simplify choosing what to boot next
+# Make sense only if you have multi boot system
+# Attempt to make it cross environment, so required program must be installed:
+# dmenu - for X, bemenu for wayland, fzf for terminal
+
+[ $DISPLAY = "wayland" ] && DMENU=(bemenu) || ([ -z $DISPLAY ] && DMENU=(fzf) || DMENU=(dmenu) )
+
+efibootmgr | rg "$(efibootmgr | sed '/:/d;s/^.*\*.//' | $DMENU -p "Boot next ?" )" | sed 's/[^0-9]//g' | xargs -ro  sudo efibootmgr -n

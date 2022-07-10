@@ -16,7 +16,7 @@ export GPG_TTY=$TTY
 #My custom search engines
 ZSH_WEB_SEARCH_ENGINES=(
 	 archw "https://wiki.archlinux.org/index.php?search="
-	 aur      "https://aur.archlinux.org/packages/?O=0&SeB=nd&outdated=&SB=v&SO=d&PP=50&do_Search=Go&K="
+	 aur   "https://aur.archlinux.org/packages/?O=0&SeB=nd&outdated=&SB=v&SO=d&PP=50&do_Search=Go&K="
  )
  #load zsh themes
   . $XDG_CONFIG_HOME/zsh/themes
@@ -57,7 +57,7 @@ autoload -U colors && colors
 setopt correct
 SPROMPT="Do you want to correct $fg[red]%R%{$reset_color%} to $fg[green]%r%{$reset_color%}: (yaen)?"
 setopt autocd		# automatically cd into typed direcotry
-# stty stop undef 1>$TTY 2>&1 # Disable ctrl-s to freeze terminal #Causes error with instant prompt
+stty stop undef <$TTY >$TTY # Disable ctrl-s to freeze terminal #Causes error with instant prompt
 #load oh-my-zsh
 source $ZSH/oh-my-zsh.sh
 
@@ -89,7 +89,9 @@ zstyle ':completion:*:*:docker-*:*' option-stacking yes
 # _comp_options+=(globdots)  # Include hidden files in autocomplete:
 
 #Fish like autosuggestions
-source /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
+zsh_auto="$XDG_CONFIG_HOME/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh"
+[ -f "$zsh_auto" ] && source "$zsh_auto"
+
 # ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=8'
 ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE="fg=#ff00ff"
 
@@ -171,8 +173,10 @@ bindkey -v '^?' backward-delete-char
 [[ -s "$SDKMAN_DIR/bin/sdkman-init.sh" ]] && source "$SDKMAN_DIR/bin/sdkman-init.sh"
 
 #fzf shenanigans
-source /usr/share/fzf/key-bindings.zsh
-source /usr/share/fzf/completion.zsh
+fzf_key=/usr/share/fzf/key-bindings.zsh
+[ -f $fzf_key ] && source $fzf_key
+fzf_comp=/usr/share/fzf/completion.zsh
+[ -f $fzf_comp ] && source $fzf_comp
 
 _fzf_comprun() {
   local command=$1
@@ -187,7 +191,21 @@ _fzf_comprun() {
 }
 # usage: _fzf_setup_completion path|dir|var|alias|host COMMANDS...
 # Load zsh-syntax-highlighting; should be last.
-source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh 2>/dev/null
+syntax_highl=$XDG_CONFIG_HOME/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+[ -f $syntax_highl ] && source $syntax_highl
+
 # To customize prompt, run `p10k configure` or edit ~/.config/zsh/.p10k.zsh.
 [[ ! -f ~/.config/zsh/.p10k.zsh ]] || source ~/.config/zsh/.p10k.zsh
-# ssh-add ~/.ssh/git
+
+#tmux as default login
+# if $(command -v tmux >/dev/null) && [[ $- =~ i ]] && [[ ! $TERM =~ screen ]] && [[ -z "$TMUX" ]]; then
+#       # tmux attach &>/dev/null  || exec tmux new -A -s default -d
+#        # tmux new -A -s default
+# fi
+
+if [ ! -S ~/.ssh/ssh_auth_sock ]; then
+    eval $(ssh-agent)
+  ln -sf "$SSH_AUTH_SOCK" ~/.ssh/ssh_auth_sock
+fi
+export SSH_AUTH_SOCK=~/.ssh/ssh_auth_sock
+ssh-add -l > /dev/null || ssh-add ~/.ssh/git

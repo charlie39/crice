@@ -1,218 +1,174 @@
--- neovim config
---default options
+--======= || DEFAULT OPTIONS || ======-----
+
 vim.g.mapleader = ','
-vim.wo.number=true
-vim.wo.rnu=true
+vim.wo.number = true
+vim.wo.rnu = true
 vim.cmd [[set bg=light]]
 --shortcuts
-local cmd, fn, g, exe  =  vim.cmd, vim.fn, vim.g, vim.api.nvim_command
--- cmd 'colorscheme base16-black-metal-immortal'
-cmd 'colorscheme base16-3024'
+---@diagnostic disable-next-line: unused-local
+local cmd, fn, g, exe = vim.cmd, vim.fn, vim.g, vim.api.nvim_command
 local opt = require('utils').opt
--- set guifont for gui vim
-opt('o','guifont','FiraCode Nerd Font:h12')
-local install_path = fn.stdpath('data')..'/site/pack/packer/opt/packer.nvim'
+-- set guifont for gui vim ( neovide )
+opt('o', 'guifont', 'FiraCode Nerd Font:h10')
+local install_path = fn.stdpath('data') .. '/site/pack/packer/start/packer.nvim'
 if fn.empty(fn.glob(install_path)) > 0 then
-  fn.system({'git', 'clone', 'https://github.com/wbthomason/packer.nvim', install_path})
-  exe 'packadd packer.nvim'
+    fn.execute({ '!git', 'clone', '--depth 1', 'https://github.com/wbthomason/packer.nvim', install_path })
+    exe 'packadd packer.nvim'
 end
--------------------- PLUGIN SETUP --------------------------
---vim-rainbow
-g['rainbow_active']=1
---ycm path to clagd
-g['ycm_clangd_uses_ycmd_caching']=0
-g['ycm_clangd_binary_path']='~/.config/nvim/packs/clangd/bin/clangd'
+-- plugin manager
+-- if you want to use other plugin manager, comment it out
+require('packer').startup(function(use)
+    use { 'wbthomason/packer.nvim' }
+    use { 'junegunn/fzf.vim', opt = true,
+        config = function() require('config.fzf') end,
+        cmd = { 'LS', 'LSv', 'FZF', 'FZD' } }
 
---vim-airline - powerline-fonts
-g['airline_powerline_fonts']=1
-g['airline#extensions#tabline#enabled']=1
-g['airline_statusline_ontop']=1
-g['airline_theme']='jet'
-g['airline_detect_modified']=1     -- * enable modified detection
-g['airline_detect_paste']=1        -- * enable paste detection
-g['airline_detect_crypt']=1        -- * enable crypt detection
-g['airline_detect_spell']=1        -- * enable spell detection
-g['airline_detect_spelllang']=1    -- * display spelling language when spell detection is enabled if enough space is available
-g['airline_detect_iminsert']=0     -- * enable iminsert detection
-g['airline_inactive_collapse']=1   -- * determine whether inactive windows should have the left section collapsed to only the filename of that buffer.  >
-g['airline_inactive_alt_sep']=1    -- * Use alternative seperators for the statusline of inactive windows >
- -- * define the set of text to display for each mode
- --[[ let g:airline_mode_map = {
-      \ '__'     : '-',
-      \ 'c'      : 'C',
-      \ 'i'      : 'I',
-      \ 'ic'     : 'I',
-      \ 'ix'     : 'I',
-      \ 'n'      : 'N',
-      \ 'multi'  : 'M',
-      \ 'ni'     : 'N',
-      \ 'no'     : 'N',
-      \ 'R'      : 'R',
-      \ 'Rv'     : 'R',
-      \ 's'      : 'S',
-      \ 'S'      : 'S',
-      \ ''     : 'S',
-      \ 't'      : 'T',
-      \ 'v'      : 'V',
-      \ 'V'      : 'V',
-      \ ''     : 'V',
-      \ } ]]
--- * define the set of names to be displayed instead of a specific filetypes (for section a and b):
+    use { 'b3nj5m1n/Kommentary' }
 
-  --[[ let g:airline_filetype_overrides = {
-      \ 'coc-explorer':  [ 'CoC Explorer', '' ],
-      \ 'defx':  ['defx', '%{b:defx.paths[0]}'],
-      \ 'fugitive': ['fugitive', '%{airline#util#wrap(airline#extensions#branch#get_head(),80)}'],
-      \ 'gundo': [ 'Gundo', '' ],
-      \ 'help':  [ 'Help', '%f' ],
-      \ 'minibufexpl': [ 'MiniBufExplorer', '' ],
-      \ 'nerdtree': [ get(g:, 'NERDTreeStatusline', 'NERD'), '' ],
-      \ 'startify': [ 'startify', '' ],
-      \ 'vim-plug': [ 'Plugins', '' ],
-      \ 'vimfiler': [ 'vimfiler', '%{vimfiler#get_status_string()}' ],
-      \ 'vimshell': ['vimshell','%{vimshell#get_status_string()}'],
-      \ 'vaffle' : [ 'Vaffle', '%{b:vaffle.dir}' ],
-      \ } ]]
+    use { 'williamboman/nvim-lsp-installer' }
+    use { 'neovim/nvim-lspconfig' , config = function() require'lsp' end  }
+    use { 'onsails/lspkind.nvim' }
+    use { 'mfussenegger/nvim-jdtls', ft = { 'java' }  }
 
---vimkwiki
-g['vimwiki_list'] = { path= '~/vimwiki', syntax= 'markdown', ext= '.md' }
+    use { 'kyazdani42/nvim-web-devicons' }
+    use { 'glepnir/galaxyline.nvim', branch = 'main',
+        config = function() require 'config.galaxyline' end,
+        requires = 'kyazdani42/nvim-web-devicons' }
+    use { 'akinsho/bufferline.nvim', tag = "v2.*", wants = 'kyazdani42/nvim-web-devicons' }
+    use { 'ray-x/aurora', opt = true }
+    use { 'chriskempson/base16-vim', opt = true }
+    use { 'ap/vim-css-color', opt = true }
 
--- treesitter
-   --[[ require 'nvim-treesitter.configs'.setup {
-	   ensure_installed = "maintained", -- one of "all", "maintained" (parsers with maintainers), or a list of languages
-	   highlight = {
-	     enable = true,              -- false will disable the whole extension
-	  },
-	} ]]
+    use { 'tpope/vim-fugitive', opt = true }
 
---=======================||  PLUGINS  ||=============================--
----| LSP |---
-exe 'packadd nvim-lspconfig'
-exe 'packadd lspkind-nvim'
-exe 'packadd lspsaga.nvim'
-exe 'packadd nvim-jdtls'
-exe 'packadd nvim-dap'
-exe 'packadd lsp-status.nvim'
--- exe 'packadd coc.nvim'
+    use { 'nvim-treesitter/nvim-treesitter',
+        run = ':TSUpdate', config = function() require 'config.tsitter' end }
+    use { 'nvim-treesitter/nvim-treesitter-refactor', opt = true }
+    use { 'nvim-treesitter/nvim-treesitter-textobjects', opt = true  }
+    use { 'p00f/nvim-ts-rainbow' , opt = true }
 
----| Movement |---
-exe 'packadd telescope.nvim'
-exe 'packadd telescope-fzy-native.nvim'
-exe 'packadd fzf.vim'
+    use { 'mfussenegger/nvim-dap' }
+    use { 'rcarriga/nvim-dap-ui' }
+    use { 'jbyuki/one-small-step-for-vimkind', opt = true, requires = 'mfussenegger/nvim-dap',
+        config = function() require 'lsp.osv' end, ft = { '.lua' } }
 
---completer
--- exe 'packadd nvim-compe'
-exe 'packadd YouCompleteMe'
-require('ycmkeymap')
+    use { 'mhartington/formatter.nvim', opt = true }
 
----| File Mgr |---
-exe 'packadd rnvimr'
-exe 'packadd vim-startify'
-exe 'packadd vim-which-key'
-exe 'packadd nerdtree'
-exe 'packadd chadtree'
---exe 'packadd vimwiki'
+    use { 'L3MON4D3/LuaSnip', requires = { 'saadparwaiz1/cmp_luasnip' } }
+    use { 'hrsh7th/cmp-path', requires = 'hrsh7th/nvim-cmp' }
+    use { 'hrsh7th/cmp-nvim-lua', requires = 'hrsh7th/nvim-cmp' }
+    use { 'hrsh7th/nvim-cmp',
+        requires = { 'hrsh7th/cmp-nvim-lsp','hrsh7th/cmp-path'},
+        wants = 'hrsh7th/cmp-nvim-lua',
+        config = function() require 'config.cmp' end }
 
-exe 'packadd formatter.nvim'
-exe 'packadd plenary.nvim'
-exe 'packadd nvim-web-devicons'
-exe 'packadd base16-vim'
-exe 'packadd vim-surround'
-exe 'packadd vim-rainbow'
-exe 'packadd Kommentary'
-exe 'packadd popfix'
-exe 'packadd vim-css-color'
-exe 'packadd vim-floaterm'
-exe 'packadd firenvim'
+    use { 'nvim-telescope/telescope-ui-select.nvim' }
+    use { 'nvim-telescope/telescope-fzf-native.nvim',
+        run = 'cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release && cmake --build build --config Release && cmake --install build --prefix build' }
+    use { 'nvim-telescope/telescope.nvim', requires = 'nvim-lua/plenary.nvim',
+        config = function() require('config.telescope') end }
+    use { 'kevinhwang91/rnvimr', opt = true, cmd = 'RnvimrToggle' }
 
-exe 'packadd vim-bookmarks'
-exe 'packadd nvim-treesitter'
-exe 'packadd popup.nvim'
-exe 'packadd nvim-cheat.sh'
-exe 'packadd nvim-select-multi-line'
--- exe 'packadd vim-fugitive'
-
----| Themes |--
-exe 'packadd vim-airline-themes'
-exe 'packadd vim-airline'
+    use { 'glacambre/firenvim', opt = true, run = function() vim.fn['firenvim#install'](-1) end }
+end)
 
 
+--================ BASICS ===================
 
--- FZF
-g['fzf_action'] = {
-  ['ctrl-t'] = 'tab split',
-  ['ctrl-s'] = 'split',
-  ['ctrl-v'] = 'vsplit',
+vim.keymap.set('n', '<C-\\>', ':PackerLoad<space><Tab>', { noremap = true })
+
+-- exe 'packadd nvim-jdtls'
+-- exe 'packadd one-small-step-for-vimkind'
+
+require('settings') -- --default settings
+require('keymap') -- --keymappings
+
+if vim.g.neovide then
+    require('config.neovide')
+end
+
+--=========  PLUGIN CONFIG ================
+require 'bufferline'.setup {
+    options = {
+        separator_style = "padded_slant",
+        numbers = "buffer_id",
+        diagnostics = "nvim_lsp",
+        diagnostics_update_in_insert = false,
+        diagnostics_indicator = function(count, level, diagnostics_dict, context)
+            return "(" .. count .. ")"
+        end,
+    }
 }
---Lspsaga
--- local saga = require 'lspsaga'
--- saga.init_lsp_saga()
--- require('lspkind').init()
-
-local map= require('utils').map
---multi-line
-map('n', '<leader>v','<cmd>call sml#mode_on()<cr>', {noremap = true})
-
-
- -------------------- BASICS -------------------------------
-
-
---default settings
-require('settings')
-
---plugins
-require('plugins')
-
-
---keymappings
-require('keymappings')
-
-
-
----------------SOURCE PLUGIN CONFIG------------------------------------
-
-require('config.telescope')
-require('config.fzf')
--- cmd 'source ~/.config/nvim/conf/fzf.vim'
-require('config.dev-icon')
--- require('config.compe')
--- exe 'autocmd FleType java lua require("jdtls_setup").setup() autocmd END'
-vim.api.nvim_exec([[
-  augroup jdtls
-    autocmd!
-    autocmd FileType java lua require('jdtls_setup').setup()
-  augroup end
-]], false)
-
-cmd 'source ~/.config/nvim/conf/which-key.vim'
-
-require('lsp')
--------------------- COMMANDS ------------------------------
-function Init_term()
-  cmd 'setlocal nonumber norelativenumber'
-  cmd 'setlocal nospell'
-  cmd 'setlocal signcolumn=auto'
-  cmd 'startinsert'
-end
-
+--============== Functions =================
 function Toggle_wrap()
-  opt('w', 'breakindent', not vim.wo.breakindent)
-  opt('w', 'linebreak', not vim.wo.linebreak)
-  opt('w', 'wrap', not vim.wo.wrap)
+    opt('w', 'breakindent', not vim.wo.breakindent)
+    opt('w', 'linebreak', not vim.wo.linebreak)
+    opt('w', 'wrap', not vim.wo.wrap)
 end
 
-vim.tbl_map(function(c) cmd(string.format('autocmd %s', c)) end, {
-  'TermOpen * lua Init_term()',
-  'TextYankPost * lua vim.highlight.on_yank {timeout = 200}',
-  'TextYankPost * if v:event.operator is "y" && v:event.regname is "+" | OSCYankReg + | endif',
+-- ================== AUTOCMDS =================
 
-  'VimLeave *.tex !texclear %',
-  'FileType * setlocal formatoptions-=c formatoptions-=r formatoptions-=o',
-  'BufWritePre * %s/\\s\\+$//e',
-  'BufWritepre * $s/\\n\\+\\%$//e',
-  'BufWritePost files,directories,aliasrc !shortcuts && source ~/.config/shortcutrc',
-  'BufWritePost *Xresources,*Xdefaults !xrdb %',
-  'BufWritePost *sxhkdrc !pkill -USR1 sxhkd',
+local custom = vim.api.nvim_create_augroup("custom", { clear = true })
+
+vim.api.nvim_create_autocmd("CursorMovedI", {
+    pattern = "*.tex",
+    callback = function()
+        local curpos = vim.fn.getcurpos()
+        local position = string.format("%s:%s:%s ", curpos[2], curpos[3], vim.fn.expand('%:p'))
+        local input = string.gsub(vim.fn.expand("%:p"), "tex$", "pdf")
+        vim.fn.jobstart(string.format("zathura -x 'nvr --remote +%%{line} %%{input}' --synctex-forward %s %s", position,
+            input))
+    end,
+    desc = "Open PDF in Zathura with syncpdf",
+    group = custom
 })
+
+vim.api.nvim_create_autocmd({ "BufReadPre", "BufWritePost" }, {
+    pattern = "*.tex",
+    command = "silent !compiler %",
+    desc = "Compiles .tex files to pdf",
+    group = custom,
+})
+
+vim.api.nvim_create_autocmd("TermOpen", {
+    callback = function()
+        cmd 'setlocal nonumber norelativenumber'
+        cmd 'setlocal nospell'
+        cmd 'setlocal signcolumn=auto'
+        cmd 'startinsert'
+    end,
+    desc = "CLean up on entering Terminal",
+    group = custom
+})
+
+vim.api.nvim_create_autocmd("TextYankPost", {
+    pattern = '*',
+    command = "silent! lua vim.highlight.on_yank {higroup=(vim.fn['hlexists']('HighlightedyankRegion') > 0 and 'HighlightedyankRegion' or 'IncSearch'), timeout=300}",
+    group = custom,
+    desc = 'highlight yanked text'
+})
+-- jdtls
+vim.api.nvim_create_autocmd("FileType Java", {
+    pattern = 'java',
+    command = "lua require('lsp.jdtls_setup').setup()",
+    desc = " Starts jdtls( Java language server )",
+    group = custom
+})
+
+vim.tbl_map(function(c) cmd(string.format('autocmd  %s', c)) end, {
+    'VimLeave *.tex silent !texclear %',
+    'FileType * setlocal formatoptions-=c formatoptions-=r formatoptions-=o',
+    'BufWritePre * %s/\\s\\+$//e',
+    'BufWritepre * $s/\\n\\+\\%$//e',
+    'BufWritePost files,directories,aliasrc !shortcuts && source ~/.config/shortcutrc',
+    'BufWritePost *Xresources,*Xdefaults !xrdb %',
+    'BufWritePost *sxhkdrc !pkill -USR1 sxhkd',
+})
+
+cmd 'colorscheme aurora'
+
+-- cmd 'colorscheme base16-atelier-savanna'
+-- cmd 'colorscheme base16-atelier-plateau'
+-- cmd 'colorscheme base16-3024'
+-- cmd 'colorscheme base16-woodland'
 -- cmd 'if &diff then highlight! link DiffText MatchParent end'
-require('config.neovide')
