@@ -15,6 +15,7 @@ if fn.empty(fn.glob(install_path)) > 0 then
     fn.execute({ '!git', 'clone', '--depth 1', 'https://github.com/wbthomason/packer.nvim', install_path })
     exe 'packadd packer.nvim'
 end
+
 -- plugin manager
 -- if you want to use other plugin manager, comment it out
 require('packer').startup(function(use)
@@ -26,9 +27,11 @@ require('packer').startup(function(use)
     use { 'b3nj5m1n/Kommentary' }
 
     use { 'williamboman/nvim-lsp-installer' }
-    use { 'neovim/nvim-lspconfig' , config = function() require'lsp' end  }
+    use { 'neovim/nvim-lspconfig', config = function() require 'lsp' end }
+    use { 'glepnir/lspsaga.nvim', branch = "main",
+        config = function() require 'lsp.lspsaga' end }
     use { 'onsails/lspkind.nvim' }
-    use { 'mfussenegger/nvim-jdtls', ft = { 'java' }  }
+    use { 'mfussenegger/nvim-jdtls', ft = { 'java' } }
 
     use { 'kyazdani42/nvim-web-devicons' }
     use { 'glepnir/galaxyline.nvim', branch = 'main',
@@ -44,8 +47,8 @@ require('packer').startup(function(use)
     use { 'nvim-treesitter/nvim-treesitter',
         run = ':TSUpdate', config = function() require 'config.tsitter' end }
     use { 'nvim-treesitter/nvim-treesitter-refactor', opt = true }
-    use { 'nvim-treesitter/nvim-treesitter-textobjects', opt = true  }
-    use { 'p00f/nvim-ts-rainbow' , opt = true }
+    use { 'nvim-treesitter/nvim-treesitter-textobjects', opt = true }
+    use { 'p00f/nvim-ts-rainbow', opt = true }
 
     use { 'mfussenegger/nvim-dap' }
     use { 'rcarriga/nvim-dap-ui' }
@@ -58,7 +61,7 @@ require('packer').startup(function(use)
     use { 'hrsh7th/cmp-path', requires = 'hrsh7th/nvim-cmp' }
     use { 'hrsh7th/cmp-nvim-lua', requires = 'hrsh7th/nvim-cmp' }
     use { 'hrsh7th/nvim-cmp',
-        requires = { 'hrsh7th/cmp-nvim-lsp','hrsh7th/cmp-path'},
+        requires = { 'hrsh7th/cmp-nvim-lsp', 'hrsh7th/cmp-path' },
         wants = 'hrsh7th/cmp-nvim-lua',
         config = function() require 'config.cmp' end }
 
@@ -76,8 +79,9 @@ end)
 --================ BASICS ===================
 
 vim.keymap.set('n', '<C-\\>', ':PackerLoad<space><Tab>', { noremap = true })
+vim.keymap.set('n', '<C-]>', ':packadd <space><Tab>', { noremap = true })
 
--- exe 'packadd nvim-jdtls'
+cmd 'packadd nvim-jdtls'
 -- exe 'packadd one-small-step-for-vimkind'
 
 require('settings') -- --default settings

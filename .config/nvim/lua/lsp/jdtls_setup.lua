@@ -1,6 +1,8 @@
 local M = {}
 
 function M.setup()
+
+    local border = { "╭", "─", "╮", "│", "╯", "─", "╰", "│" }
     local home = os.getenv('HOME')
     local maven_home = os.getenv('MAVEN_HOME')
     local project_name = vim.fn.fnamemodify(vim.fn.getcwd(), ':p:h:t')
@@ -11,6 +13,7 @@ function M.setup()
     for _, bundle in ipairs(vim.split(vim.fn.glob(home .. '/packages/repos/vscode-java-test/server/*.jar'), '\n')) do
         table.insert(bundles, bundle)
     end
+
     -- add jol
     require('jdtls').jol_path = home .. '/packages/repos/jol/jol-cli/target/jol-cli.jar'
 
@@ -22,8 +25,6 @@ function M.setup()
 
         cmd = { 'java-lsp', workspace_dir },
 
-        -- 💀
-        -- This is the default if not provided, you can remove it. Or adjust as needed.
         -- One dedicated LSP server & client will be started per unique root_dir
         root_dir = require('jdtls.setup').find_root({ '.git', 'mvnw', 'gradlew', 'pom.xml', 'build.gradle' }),
 
@@ -146,7 +147,6 @@ function M.setup()
 
 
     local on_attach = function(client, bufnr)
-
         local bufopts = { noremap = true, silent = true, buffer = bufnr }
         local opts = { noremap = true, silent = true }
 
@@ -156,12 +156,7 @@ function M.setup()
         -- dap-ui
         require('dap-ui_setup').ssetup()
 
-        require('jdtls').setup_dap()
-        -- require('jdtls').setup_dap({ hotcodereplace = 'auto' })
-        -- require'jdtsl.dap'.setup_dap_main_class_configs()
-
-
-        vim.api.nvim.set_option('omnifunc', 'v:lua.vim.lsp.omnifunc')
+        vim.api.nvim_buf_set_option(bufnr, 'omnifunc', 'v:lua.vim.lsp.omnifunc')
 
         -- Mappings.
         vim.keymap.set('n', 'gD', vim.lsp.buf.declaration, bufopts)
@@ -198,15 +193,37 @@ function M.setup()
         vim.keymap.set('n', '<space>tm', "<cmd>lua require('jdtls').test_nearest_method(true)<cr>", bufopts)
 
 
+        require('jdtls').setup_dap()
+        -- require('jdtls').setup_dap({ hotcodereplace = 'auto' })
+        -- require'jdtsl.dap'.setup_dap_main_class_configs()
+        -- add the preconfigured Jdt* commands
+        require('jdtls.setup').add_commands()
+
+
+
+        --- update galaxyline -----
+        -- jdtls takes a retarted amount of time to start and galaxyline doesn't have any callback
+        -- so this settings basically updates the provider of the lsp section with the client.name
+
+        local status_ok, galaxyline = pcall(require, 'galaxyline')
+        if status_ok then
+            galaxyline.section.mid[1] = {
+                ShowLspClient = {
+                    icon = ' LSP:',
+                    provider = function() return client.name end,
+                },
+            }
+        end
+
         -- Set some keybinds conditional on server capabilities
-        if client.resolved_capabilities.document_formatting then
-            vim.keymap.set('n', '<space>f', vim.lsp.buf.formatting, bufopts)
-        elseif client.resolved_capabilities.document_range_formatting then
+        if client.server_capabilities.documentFormattingProvider then
+            vim.keymap.set('n', '<space>f', vim.lsp.buf.format, bufopts)
+        elseif client.server_capabilities.documentRangeFormattingProvider then
             vim.keymap.set('n', '<space>f', vim.lsp.buf.range_formatting, bufopts)
         end
 
         -- Set autocommands conditional on server_capabilities
-        if client.resolved_capabilities.document_highlight then
+        if client.server_capabilities.documentHighlightProvider then
             local highlight = vim.api.nvim_create_augroup("lsp_doc_highlight", { clear = true })
             vim.api.nvim_create_autocmd("CursorHold", {
                 buffer = 0,
@@ -214,7 +231,6 @@ function M.setup()
                 desc = "highlight text when cursor holds",
                 group = highlight
             })
-
             vim.api.nvim_create_autocmd("CursorMoved", {
                 buffer = 0,
                 command = 'lua vim.lsp.buf.clear_references()',
@@ -223,22 +239,9 @@ function M.setup()
             })
 
         end
-        require('jdtls.setup').add_commands()
-
-        --- update galaxyline -----
-        -- jdtls takes a retarted amount of time to start and galaxyline doesn't have any callback
-        -- so this settings basically updates the provider of the lsp section with the client.name
-
-        local status_ok, galaxyline = pcall(require, 'galaxyline')
-        if status_ok then
-            local colors = require 'galaxyline.theme'.default
-            galaxyline.section.mid[1] = {
-                ShowLspClient = {
-                    highlight = { colors.orange, colors.bg, 'bold' },
-                    icon = ' LSP:',
-                    provider = function() return client.name end,
-                },
-            }
+        local hp = client.server_capabilities.hoverProvider
+        if hp == true or (type(hp) == "table" and next(hp) ~= nil) then
+            vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, { border = border })
         end
     end
 

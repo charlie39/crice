@@ -3,7 +3,7 @@ local map = utils.map
 
 
 -- source init.lua
-map('n', '<leader>s', '<cmd>luafile %<CR>')
+map('n', '<leader>s', '<cmd>luafile $MYVIMRC<CR>')
 
 --tab traversal
 map('n', 'tt', ' <cmd>tabnew<CR>')

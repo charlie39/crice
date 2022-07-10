@@ -1,11 +1,13 @@
-
+-- lsp installer
+require('nvim-lsp-installer').setup()
 
 -- ========================== |  lspconfig  | ==================================
 
+local border = { "╭", "─", "╮", "│", "╯", "─", "╰", "│" }
 local opts = { noremap = true, silent = true }
 
 local on_attach = function(client, bufnr)
-
+    print("from side on_attachh")
     --setup debug adapters
     require 'dap_setup'.setup()
 
@@ -13,7 +15,6 @@ local on_attach = function(client, bufnr)
     require 'dap-ui_setup'.ssetup()
 
     -- lsp installer
-    require('nvim-lsp-installer').setup()
 
     local bufopts = { noremap = true, silent = true, buffer = bufnr }
 
@@ -40,18 +41,15 @@ local on_attach = function(client, bufnr)
     vim.keymap.set('n', ']d', vim.diagnostic.goto_next, opts)
     vim.keymap.set('n', '<space>q', vim.diagnostic.setloclist, opts)
 
-    --[[ buf_set_keymap('n', '<space>ca', 'lua vim.lsp.buf.code_action()<CR>', opts)
-  buf_set_keymap('n', '<space>e', 'lua vim.lsp.diagnostic.show_line_diagnostics()<CR>', opts) ]]
-
     -- Set some keybinds conditional on server capabilities
-    if client.resolved_capabilities.document_formatting then
-        vim.keymap.set('n', '<space>f', vim.lsp.buf.formatting, bufopts)
-    elseif client.resolved_capabilities.document_range_formatting then
+    if client.server_capabilities.documentFormattingProvider then
+        vim.keymap.set('n', '<space>f', vim.lsp.buf.format, bufopts)
+    elseif client.server_capabilities.documentRangeFormattingProvider then
         vim.keymap.set('n', '<space>f', vim.lsp.buf.range_formatting, bufopts)
     end
 
     -- Set autocommands conditional on server_capabilities
-    if client.resolved_capabilities.document_highlight then
+    if client.server_capabilities.documentHighlightProvider then
 
         local hi = vim.api.nvim_create_augroup("lsp_doc_highlight", { clear = true })
         vim.api.nvim_create_autocmd("CursorHold", {
@@ -68,11 +66,16 @@ local on_attach = function(client, bufnr)
             group = hi
         })
 
-        vim.api.nvim_exec([[
+        -- too brighty
+        --[[ vim.api.nvim_exec([[
             hi LspReferenceRead cterm=bold ctermbg=red guibg=LightYellow
             hi LspReferenceText cterm=bold ctermbg=red guibg=LightYellow
             hi LspReferenceWrite cterm=bold ctermbg=red guibg=LightYellow
-        ]], false)
+        , false) ]]
+    end
+    local hp = client.server_capabilities.hoverProvider
+    if hp == true or (type(hp) == "table" and next(hp) ~= nil) then
+        vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, { border = border })
     end
     local status_ok, galaxyline = pcall(require, 'galaxyline')
     if status_ok then
