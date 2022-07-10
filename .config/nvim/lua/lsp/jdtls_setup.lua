@@ -11,7 +11,7 @@ function M.setup()
     for _, bundle in ipairs(vim.split(vim.fn.glob(home .. '/packages/repos/vscode-java-test/server/*.jar'), '\n')) do
         table.insert(bundles, bundle)
     end
-    -- TODO  add jol
+    -- add jol
     require('jdtls').jol_path = home .. '/packages/repos/jol/jol-cli/target/jol-cli.jar'
 
     local extendedClientCapabilities = require 'jdtls'.extendedClientCapabilities
@@ -147,9 +147,6 @@ function M.setup()
 
     local on_attach = function(client, bufnr)
 
-        --[[ lsp_status.register_progress()
-    lsp_status.on_attach(client) ]]
-
         local bufopts = { noremap = true, silent = true, buffer = bufnr }
         local opts = { noremap = true, silent = true }
 
@@ -164,7 +161,7 @@ function M.setup()
         -- require'jdtsl.dap'.setup_dap_main_class_configs()
 
 
-        -- vim.api.nvim.set_option('omnifunc', 'v:lua.vim.lsp.omnifunc')
+        vim.api.nvim.set_option('omnifunc', 'v:lua.vim.lsp.omnifunc')
 
         -- Mappings.
         vim.keymap.set('n', 'gD', vim.lsp.buf.declaration, bufopts)
@@ -229,6 +226,9 @@ function M.setup()
         require('jdtls.setup').add_commands()
 
         --- update galaxyline -----
+        -- jdtls takes a retarted amount of time to start and galaxyline doesn't have any callback
+        -- so this settings basically updates the provider of the lsp section with the client.name
+
         local status_ok, galaxyline = pcall(require, 'galaxyline')
         if status_ok then
             local colors = require 'galaxyline.theme'.default
@@ -246,13 +246,10 @@ function M.setup()
     config.capabilities = require('cmp_nvim_lsp').update_capabilities(vim.lsp.protocol.make_client_capabilities())
 
     local on_init = function(client, _)
-        client.notify('workspace/didChangeConfiguration', { settings = config.settings })
+        client.notify('workspace/didChangeConfiguration', { settings = client.config.settings })
     end
 
     config.on_init = on_init
-
-    -- This starts a new client & server,
-    -- or attaches to an existing client & server depending on the `root_dir`.
 
     require('jdtls').start_or_attach(config)
 end

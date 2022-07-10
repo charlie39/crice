@@ -1,30 +1,6 @@
---setting up keybindings and options for lsp-----------------------------------------
 
-require('nvim-lsp-installer').setup()
---lsp-status
---[[ local lsp_status = require('lsp-status')
-lsp_status.config {
-  kind_labels =  vim.g.completion_customize_lsp_label,
-  select_symbol = function(cursor_pos, symbol)
-    if symbol.valueRange then
-      local value_range = {
-        ["start"] = {
-          character = 0,
-          line = vim.fn.byte2line(symbol.valueRange[1])
-        },
-        ["end"] = {
-          character = 0,
-          line = vim.fn.byte2line(symbol.valueRange[2])
-        }
-      }
 
-      return require("lsp-status.util").in_range(cursor_pos, value_range)
-    end
-  end,
-  status_symbol = '$'
-}
-]]
--- ======================================== |  lspconfig  | =============================================
+-- ========================== |  lspconfig  | ==================================
 
 local opts = { noremap = true, silent = true }
 
@@ -36,12 +12,13 @@ local on_attach = function(client, bufnr)
     -- dap-ui config
     require 'dap-ui_setup'.ssetup()
 
+    -- lsp installer
+    require('nvim-lsp-installer').setup()
 
     local bufopts = { noremap = true, silent = true, buffer = bufnr }
 
-    -- buf_set_option('omnifunc', 'v:lua.vim.lsp.omnifunc')
+    vim.api.nvim_buf_set_option(bufnr, 'omnifunc', 'v:lua.vim.lsp.omnifunc')
 
-    -- vim.api.nvim.set_option('omnifunc', 'v:lua.vim.lsp.omnifunc')
     -- Mappings.
     vim.keymap.set('n', 'gD', vim.lsp.buf.declaration, bufopts)
     vim.keymap.set('n', 'gd', vim.lsp.buf.definition, bufopts)
@@ -114,14 +91,11 @@ local on_attach = function(client, bufnr)
 
 end
 
------------------- setup cmp for lsp completion ------------------------------------
 -- Setup cmp
 local capabilities = require('cmp_nvim_lsp').update_capabilities(vim.lsp.protocol.make_client_capabilities())
 
 --------------------------------- Lua -------------------------------------
 
-
--- require'lspconfig'.sumneko_lua.setup {
 require('lspconfig')['sumneko_lua'].setup {
     on_attach = on_attach,
     settings = {
@@ -151,7 +125,7 @@ require('lspconfig')['sumneko_lua'].setup {
     capabilities = capabilities
 }
 
------------------------------------- Bash  ----------------------------------------------
+------------------------------- Bash  --------------------------------
 
 require('lspconfig')['bashls'].setup {
     cmd_env = {
@@ -162,7 +136,7 @@ require('lspconfig')['bashls'].setup {
     capabilities = capabilities
 }
 
------------------------------------ Python ----------------------------------------------
+------------------------------- Python --------------------------------
 
 require('lspconfig')['pyright'].setup {
     on_attach = on_attach,
@@ -170,14 +144,14 @@ require('lspconfig')['pyright'].setup {
 }
 
 
-------------------------------------- Rust -----------------------------------------------
+-------------------------------- Rust ----------------------------------
 --
 require('lspconfig')['rust_analyzer'].setup {
     on_attach = on_attach,
     filetypes = { "rust" },
     capabilities = capabilities
 }
-------------------------------------- clangd -----------------------------------------------
+------------------------------- clangd ---------------------------------
 
 require('lspconfig')['clangd'].setup {
     on_attach = on_attach,

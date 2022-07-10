@@ -99,14 +99,15 @@ require 'bufferline'.setup {
         end,
     }
 }
---============== Functions =================
+--============ Functions =================
+
 function Toggle_wrap()
     opt('w', 'breakindent', not vim.wo.breakindent)
     opt('w', 'linebreak', not vim.wo.linebreak)
     opt('w', 'wrap', not vim.wo.wrap)
 end
 
--- ================== AUTOCMDS =================
+-- ============= AUTOCMDS =================
 
 local custom = vim.api.nvim_create_augroup("custom", { clear = true })
 
@@ -166,7 +167,6 @@ vim.tbl_map(function(c) cmd(string.format('autocmd  %s', c)) end, {
 })
 
 cmd 'colorscheme aurora'
-
 -- cmd 'colorscheme base16-atelier-savanna'
 -- cmd 'colorscheme base16-atelier-plateau'
 -- cmd 'colorscheme base16-3024'
