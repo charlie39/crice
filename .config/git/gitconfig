@@ -50,3 +50,5 @@
 	root = rev-parse --show-toplevel
 	exec = !exec
 	root = rev-parse --show-toplevel
+[remote "hub"]
+	gh-resolved = base
