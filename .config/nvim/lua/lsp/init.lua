@@ -1,20 +1,17 @@
 -- lsp installer
 require('nvim-lsp-installer').setup()
-
 -- ========================== |  lspconfig  | ==================================
 
 local border = { "╭", "─", "╮", "│", "╯", "─", "╰", "│" }
 local opts = { noremap = true, silent = true }
 
 local on_attach = function(client, bufnr)
-    print("from side on_attachh")
     --setup debug adapters
     require 'dap_setup'.setup()
 
     -- dap-ui config
     require 'dap-ui_setup'.ssetup()
 
-    -- lsp installer
 
     local bufopts = { noremap = true, silent = true, buffer = bufnr }
 
@@ -32,7 +29,7 @@ local on_attach = function(client, bufnr)
         print(vim.inspect(vim.lsp.buf.list_workspace_folders()))
     end, bufopts)
     vim.keymap.set('n', '<space>D', vim.lsp.buf.type_definition, bufopts)
-    vim.keymap.set('n', '<space>rn', vim.lsp.buf.rename, bufopts)
+    -- vim.keymap.set('n', '<space>rn', vim.lsp.buf.rename, bufopts)
     vim.keymap.set('n', '<space>ca', vim.lsp.buf.code_action, bufopts)
     vim.keymap.set('n', 'gr', vim.lsp.buf.references, bufopts)
 
@@ -72,6 +69,32 @@ local on_attach = function(client, bufnr)
             hi LspReferenceText cterm=bold ctermbg=red guibg=LightYellow
             hi LspReferenceWrite cterm=bold ctermbg=red guibg=LightYellow
         , false) ]]
+    end
+
+    --- lspsaga
+    local lspsaga_ok,_ = pcall(require, 'lspsaga')
+    if lspsaga_ok then
+        vim.keymap.set('n', '<space>rn', require('lspsaga.rename').lsp_rename, bufopts)
+        vim.keymap.set('n', '<space>pd', require('lspsaga.definition').preview_definition, bufopts)
+        vim.keymap.set("n", "<space>sh", require("lspsaga.signaturehelp").signature_help, bufopts)
+        vim.keymap.set("v", "<space>ra", '<cmd>Lspsaga range_code_action<cr>', bufopts)
+
+        vim.keymap.set("n", "<space>cd", require("lspsaga.diagnostic").show_line_diagnostics,
+            { silent = true, noremap = true })
+
+        -- jump diagnostic
+        vim.keymap.set("n", "[e", require("lspsaga.diagnostic").goto_prev, bufopts)
+        vim.keymap.set("n", "]e", require("lspsaga.diagnostic").goto_next, bufopts)
+        -- or jump to error
+        vim.keymap.set("n", "[E", function()
+            require("lspsaga.diagnostic").goto_prev({ severity = vim.diagnostic.severity.ERROR })
+        end, { silent = true, noremap = true })
+        vim.keymap.set("n", "]E", function()
+            require("lspsaga.diagnostic").goto_next({ severity = vim.diagnostic.severity.ERROR })
+        end, { silent = true, noremap = true })
+
+        vim.keymap.set("n", "<A-t>", "<cmd>Lspsaga open_floaterm<CR>", bufopts)
+        vim.keymap.set("t", "<A-t>", "<C-\\><C-n><cmd>Lspsaga close_floaterm<CR>", bufopts)
     end
     local hp = client.server_capabilities.hoverProvider
     if hp == true or (type(hp) == "table" and next(hp) ~= nil) then
@@ -117,7 +140,9 @@ require('lspconfig')['sumneko_lua'].setup {
                 -- Make the server aware of Neovim runtime files
                 library = {
                     [vim.fn.expand('$VIMRUNTIME/lua')] = true,
-                    [vim.fn.expand('$VIMRUNTIME/lua/vim/lsp')] = true, },
+                    [vim.fn.expand('$VIMRUNTIME/lua/vim/lsp')] = true,
+                    [vim.fn.expand(vim.fn.stdpath('config') .. '/lua')] = true,
+                },
             },
             -- Do not send telemetry data containing a randomized but unique identifier
             telemetry = {
@@ -160,3 +185,12 @@ require('lspconfig')['clangd'].setup {
     on_attach = on_attach,
     capabilities = capabilities
 }
+
+------------------------------------------------------------------------
+
+
+------------------------------------------------------------------------
+
+-- lspsaga --
+-- this should at the bottom of all language servers
+require('lsp.lspsaga').setup()

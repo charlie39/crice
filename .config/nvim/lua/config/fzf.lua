@@ -1,5 +1,5 @@
 
-local keymap = require('utils').map
+-- local keymap = require('utils').map
 local exe = vim.api.nvim_exec
 
 vim.g['fzf_action'] = {

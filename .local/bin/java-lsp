@@ -5,8 +5,9 @@ JDTLS_CONFIG="/usr/share/java/jdtls/config_linux"
 JDTLS_PLUGINS="/usr/share/java/jdtls/plugins/"
 JAR=$JDTLS_PLUGINS"org.eclipse.equinox.launcher_*.jar"
 
+  # -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=localhost:8000 \
+
 GRADLE_HOME="$HOME/.local/lib/sdkman/candidates/gradle/current/bin/gradle" java \
-  -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=localhost:8000 \
   -Declipse.application=org.eclipse.jdt.ls.core.id1 \
   -Xbootclasspath/a:$HOME/.local/lib/lombok/lombok.jar \
   -Dosgi.bundles.defaultStartLevel=4 \

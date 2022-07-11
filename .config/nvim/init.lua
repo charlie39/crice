@@ -16,10 +16,15 @@ if fn.empty(fn.glob(install_path)) > 0 then
     exe 'packadd packer.nvim'
 end
 
+
 -- plugin manager
 -- if you want to use other plugin manager, comment it out
 require('packer').startup(function(use)
     use { 'wbthomason/packer.nvim' }
+    use { 'glacambre/firenvim', opt = true,
+        run = function() vim.fn['firenvim#install'](-1) end ,
+        config = function() require'config.firenvim' end }
+
     use { 'junegunn/fzf.vim', opt = true,
         config = function() require('config.fzf') end,
         cmd = { 'LS', 'LSv', 'FZF', 'FZD' } }
@@ -28,8 +33,7 @@ require('packer').startup(function(use)
 
     use { 'williamboman/nvim-lsp-installer' }
     use { 'neovim/nvim-lspconfig', config = function() require 'lsp' end }
-    use { 'glepnir/lspsaga.nvim', branch = "main",
-        config = function() require 'lsp.lspsaga' end }
+    use { 'glepnir/lspsaga.nvim', branch = "main" }
     use { 'onsails/lspkind.nvim' }
     use { 'mfussenegger/nvim-jdtls', ft = { 'java' } }
 
@@ -65,14 +69,13 @@ require('packer').startup(function(use)
         wants = 'hrsh7th/cmp-nvim-lua',
         config = function() require 'config.cmp' end }
 
-    use { 'nvim-telescope/telescope-ui-select.nvim' }
+  use { 'nvim-telescope/telescope-ui-select.nvim' }
     use { 'nvim-telescope/telescope-fzf-native.nvim',
         run = 'cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release && cmake --build build --config Release && cmake --install build --prefix build' }
     use { 'nvim-telescope/telescope.nvim', requires = 'nvim-lua/plenary.nvim',
         config = function() require('config.telescope') end }
     use { 'kevinhwang91/rnvimr', opt = true, cmd = 'RnvimrToggle' }
 
-    use { 'glacambre/firenvim', opt = true, run = function() vim.fn['firenvim#install'](-1) end }
 end)
 
 
@@ -80,7 +83,7 @@ end)
 
 vim.keymap.set('n', '<C-\\>', ':PackerLoad<space><Tab>', { noremap = true })
 vim.keymap.set('n', '<C-]>', ':packadd <space><Tab>', { noremap = true })
-
+-- cmd 'packadd firenvim'
 cmd 'packadd nvim-jdtls'
 -- exe 'packadd one-small-step-for-vimkind'
 

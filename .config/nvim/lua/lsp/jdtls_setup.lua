@@ -24,13 +24,7 @@ function M.setup()
     local config = {
 
         cmd = { 'java-lsp', workspace_dir },
-
-        -- One dedicated LSP server & client will be started per unique root_dir
         root_dir = require('jdtls.setup').find_root({ '.git', 'mvnw', 'gradlew', 'pom.xml', 'build.gradle' }),
-
-        -- Here you can configure eclipse.jdt.ls specific settings
-        -- See https://github.com/eclipse/eclipse.jdt.ls/wiki/Running-the-JAVA-LS-server-from-the-command-line#initialize-request
-        -- for a list of options
         settings = {
             java = {
                 signatureHelp = { enabled = true };
@@ -97,10 +91,6 @@ function M.setup()
                         globalSettings = maven_home .. "/conf/settings.xml",
                         userSettings = home .. "/.local/repos/.m2/settings.xml",
                     },
-
-                    -- See https://github.com/eclipse/eclipse.jdt.ls/wiki/Running-the-JAVA-LS-server-from-the-command-line#initialize-request
-                    -- And search for `interface RuntimeOption`
-                    -- The `name` is NOT arbitrary, but must match one of the elements from `enum ExecutionEnvironment` in the link above
                     runtimes = {
                         {
                             name = "JavaSE-11",
@@ -113,19 +103,10 @@ function M.setup()
                     }
                 }
             },
-
-            -- Language server `initializationOptions`
-            -- You need to extend the `bundles` with paths to jar files
-            -- if you want to use additional eclipse.jdt.ls plugins.
-            --
-            -- See https://github.com/mfussenegger/nvim-jdtls#java-debug-installation
-            --
-            -- If you don't plan on using the debugger or other eclipse.jdt.ls plugins you can remove this
         },
         init_options = {
             bundles = bundles,
             extendedClientCapabilities = extendedClientCapabilities
-
         },
 
         flags = {
@@ -147,6 +128,7 @@ function M.setup()
 
 
     local on_attach = function(client, bufnr)
+
         local bufopts = { noremap = true, silent = true, buffer = bufnr }
         local opts = { noremap = true, silent = true }
 
@@ -157,6 +139,7 @@ function M.setup()
         require('dap-ui_setup').ssetup()
 
         vim.api.nvim_buf_set_option(bufnr, 'omnifunc', 'v:lua.vim.lsp.omnifunc')
+
 
         -- Mappings.
         vim.keymap.set('n', 'gD', vim.lsp.buf.declaration, bufopts)
@@ -192,6 +175,32 @@ function M.setup()
         vim.keymap.set('n', '<space>tc', "<cmd>lua require('jdtls').test_class()<cr>", bufopts)
         vim.keymap.set('n', '<space>tm', "<cmd>lua require('jdtls').test_nearest_method(true)<cr>", bufopts)
 
+
+        --- lspsaga
+        local lspsaga_ok,_ = pcall(require, 'lspsaga')
+        if lspsaga_ok then
+            vim.keymap.set('n', '<space>rn', require('lspsaga.rename').lsp_rename, bufopts)
+            vim.keymap.set('n', '<space>pd', require('lspsaga.definition').preview_definition, bufopts)
+            vim.keymap.set("n", "<space>sh", require("lspsaga.signaturehelp").signature_help, bufopts)
+            vim.keymap.set("v", "<space>ra", '<cmd>Lspsaga range_code_action<cr>', bufopts)
+
+            vim.keymap.set("n", "<space>cd", require("lspsaga.diagnostic").show_line_diagnostics,
+                { silent = true, noremap = true })
+
+            -- jump diagnostic
+            vim.keymap.set("n", "[e", require("lspsaga.diagnostic").goto_prev, bufopts)
+            vim.keymap.set("n", "]e", require("lspsaga.diagnostic").goto_next, bufopts)
+            -- or jump to error
+            vim.keymap.set("n", "[E", function()
+                require("lspsaga.diagnostic").goto_prev({ severity = vim.diagnostic.severity.ERROR })
+            end, { silent = true, noremap = true })
+            vim.keymap.set("n", "]E", function()
+                require("lspsaga.diagnostic").goto_next({ severity = vim.diagnostic.severity.ERROR })
+            end, { silent = true, noremap = true })
+
+            vim.keymap.set("n", "<A-t>", "<cmd>Lspsaga open_floaterm<CR>", bufopts)
+            vim.keymap.set("t", "<A-t>", "<C-\\><C-n><cmd>Lspsaga close_floaterm<CR>", bufopts)
+        end
 
         require('jdtls').setup_dap()
         -- require('jdtls').setup_dap({ hotcodereplace = 'auto' })
@@ -255,6 +264,9 @@ function M.setup()
     config.on_init = on_init
 
     require('jdtls').start_or_attach(config)
+
+-------------------------------------------------------------------------------------------------
+    require('lsp.lspsaga').setup()
 end
 
 return M
