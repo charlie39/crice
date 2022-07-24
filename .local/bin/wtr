@@ -1,0 +1,32 @@
+#!/bin/bash
+set -x
+wtr_theme="/usr/share/rofi/themes/lb"
+ROFI=(rofi -i -dmenu -theme $wtr_theme)
+
+echo "\$\$:" $$
+echo "hash: $#"
+echo "exclam: $!"
+
+__dynamic() {
+    a=( "${@}" )
+    last_opt=${a[${#a[@]}]}
+    if [[ $last_opt =~ [0-9] ]];then
+        md=$last_opt
+        if [ "$#" -gt 1 ];then
+            a[$#]=""
+            opt=${a[@]}
+        fi
+    elif [[ $# -ge 1 ]];then
+        opt=${a[@]}
+    fi
+}
+
+opt=(~/Videos/ ~/Music/) md=6
+__dynamic "$@"
+
+find -L $(echo $opt)  -maxdepth $md -size +1M| grep -F "$(find -L $(echo $opt) -maxdepth $md -size +1M|\
+grep -E ".*\.[mawo].{2,3}" |cut -d'/' -f5- | sed -E 's/\..{2,5}$//' | ${ROFI[@]} $wtr_theme |\
+sed 's/$/./' )"| awk  -F '.' -v pid=$$ -v ppid=$PPID 'FNR==2{system("kill -9 " ppid)}FNR==1&&NF>1{print}'|\
+xargs -rd $'\n'  sh -c '"$VPLAYER" "$@";echo \""$@"\"' ''
+
+# sed 's/$/./' )"| awk  -F '.' -v pid=$$ '!/\.srt$/&&FNR==1&&NF>1{print}FNR==2{system("kill -9 " pid)}'|\

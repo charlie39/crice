@@ -33,6 +33,7 @@ alias  \
 	g="git" \
 	trem="transmission-remote" \
 	sdn="sudo shutdown -h now" \
+    sus="systemctl suspend-then-hibernate" \
 	rfba="sudo rfkill block all" \
 	vf="vifm" \
 	p="sudo pacman --color auto" \
