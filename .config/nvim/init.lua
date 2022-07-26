@@ -1,9 +1,8 @@
---======= || DEFAULT OPTIONS || ======-----
+--======= | DEFAULT OPTIONS || ======-----
 
 vim.g.mapleader = ','
 vim.wo.number = true
 vim.wo.rnu = true
-
 --shortcuts
 ---@diagnostic disable-next-line: unused-local
 local cmd, fn, g, exe = vim.cmd, vim.fn, vim.g, vim.api.nvim_command
@@ -20,12 +19,9 @@ end
 -- if you want to use other plugin manager, comment it out
 require('packer').startup(function(use)
   use { 'wbthomason/packer.nvim' }
-  use { 'glacambre/firenvim', opt = true,
-    run = function() vim.fn['firenvim#install'](-1) end,
-    config = function() require 'config.firenvim' end }
   use { 'ellisonleao/glow.nvim', branch = 'main' }
 
-  use { 'junegunn/fzf.vim', opt = true,
+  use { 'junegunn/fzf.vim', disable = true, opt = true,
     config = function() require('config.fzf') end,
     cmd = { 'LS', 'LSv', 'FZF', 'FZD' } }
   use { 'b3nj5m1n/Kommentary' }
@@ -38,11 +34,14 @@ require('packer').startup(function(use)
   use { 'p00f/clangd_extensions.nvim', opt = true }
   use { 'simrat39/rust-tools.nvim', opt = true }
 
+  use { 'glacambre/firenvim', opt = true,
+    run = function() vim.fn['firenvim#install'](-1) end }
+
   use { 'kyazdani42/nvim-web-devicons' }
-  use { 'glepnir/galaxyline.nvim', branch = 'main',
-    config = function() require 'config.galaxyline' end,
+  use { 'glepnir/galaxyline.nvim', opt = true, branch = 'main',
     requires = 'kyazdani42/nvim-web-devicons' }
-  use { 'akinsho/bufferline.nvim', tag = "v2.*", wants = 'kyazdani42/nvim-web-devicons' }
+  use { 'akinsho/bufferline.nvim', opt = true,
+    tag = "v2.*", wants = 'kyazdani42/nvim-web-devicons' }
   use { 'ray-x/aurora', opt = true }
   use { 'navarasu/onedark.nvim', opt = true }
   use { 'tiagovla/tokyodark.nvim', opt = true }
@@ -92,11 +91,15 @@ end)
 vim.keymap.set('n', 'C-\\', ':PackerLoad<space><Tab>', { noremap = true })
 vim.keymap.set('n', '<C-]>', ':packadd <space>Tab', { noremap = true })
 
+require('settings') -- --default settings
+require('keymap') -- --keymappings
+
 
 ------plugin configs
 
 require 'config.luasnip'
-cmd 'packadd firenvim'
+
+
 cmd 'packadd nvim-jdtls'
 cmd 'packadd clangd_extensions.nvim'
 cmd 'packadd rust-tools.nvim'
@@ -106,53 +109,45 @@ cmd 'packadd nvim-surround'
 cmd 'packadd nvim-tree.lua'
 cmd 'packadd vim-fugitive'
 
---[[ local tree_ok, tree = pcall(require,'nvim-tree')
+local tree_ok, tree = pcall(require,'nvim-tree')
 if tree_ok then
   tree.setup()
-end ]]
+end
 
 cmd 'packadd gitsigns.nvim'
 
 local gs_ok, gss = pcall(require, 'gitsigns')
 if gs_ok then
   gss.setup {
+    -- numhl = true,
     on_attach = function(bufnr)
-      local gs = package.loaded.gitsigns
-
-      local function map(mode, l, r, opts)
-        opts = opts or {}
-        opts.buffer = bufnr
-        vim.keymap.set(mode, l, r, opts)
+      local function map(mode, lhs, rhs, opts)
+        opts = vim.tbl_extend('force', { noremap = true, silent = true }, opts or {})
+        vim.api.nvim_buf_set_keymap(bufnr, mode, lhs, rhs, opts)
       end
 
       -- Navigation
-      map('n', ']c', function()
-        if vim.wo.diff then return ']c' end
-        vim.schedule(function() gs.next_hunk() end)
-        return '<Ignore>'
-      end, { expr = true })
-
-      map('n', '[c', function()
-        if vim.wo.diff then return '[c' end
-        vim.schedule(function() gs.prev_hunk() end)
-        return '<Ignore>'
-      end, { expr = true })
+      map('n', ']c', "&diff ? ']c' : '<cmd>Gitsigns next_hunk<CR>'", { expr = true })
+      map('n', '[c', "&diff ? '[c' : '<cmd>Gitsigns prev_hunk<CR>'", { expr = true })
 
       -- Actions
-      map({ 'n', 'v' }, '<leader>hs', ':Gitsigns stage_hunk<CR>')
-      map({ 'n', 'v' }, '<leader>hr', ':Gitsigns reset_hunk<CR>')
-      map('n', '<leader>hS', gs.stage_buffer)
-      map('n', '<leader>hu', gs.undo_stage_hunk)
-      map('n', '<leader>hR', gs.reset_buffer)
-      map('n', '<leader>hp', gs.preview_hunk)
-      map('n', '<leader>hb', function() gs.blame_line { full = true } end)
-      map('n', '<leader>tb', gs.toggle_current_line_blame)
-      map('n', '<leader>hd', gs.diffthis)
-      map('n', '<leader>hD', function() gs.diffthis('~') end)
-      map('n', '<leader>td', gs.toggle_deleted)
+      map('n', '<leader>hs', ':Gitsigns stage_hunk<CR>')
+      map('v', '<leader>hs', ':Gitsigns stage_hunk<CR>')
+      map('n', '<leader>hr', ':Gitsigns reset_hunk<CR>')
+      map('v', '<leader>hr', ':Gitsigns reset_hunk<CR>')
+      map('n', '<leader>hS', '<cmd>Gitsigns stage_buffer<CR>')
+      map('n', '<leader>hu', '<cmd>Gitsigns undo_stage_hunk<CR>')
+      map('n', '<leader>hR', '<cmd>Gitsigns reset_buffer<CR>')
+      map('n', '<leader>hp', '<cmd>Gitsigns preview_hunk<CR>')
+      map('n', '<leader>hb', '<cmd>lua require"gitsigns".blame_line{full=true}<CR>')
+      map('n', '<leader>tb', '<cmd>Gitsigns toggle_current_line_blame<CR>')
+      map('n', '<leader>hd', '<cmd>Gitsigns diffthis<CR>')
+      map('n', '<leader>hD', '<cmd>lua require"gitsigns".diffthis("~")<CR>')
+      map('n', '<leader>td', '<cmd>Gitsigns toggle_deleted<CR>')
 
       -- Text object
-      map({ 'o', 'x' }, 'ih', ':<C-U>Gitsigns select_hunk<CR>')
+      map('o', 'ih', ':<C-U>Gitsigns select_hunk<CR>')
+      map('x', 'ih', ':<C-U>Gitsigns select_hunk<CR>')
     end
   }
 end
@@ -167,28 +162,33 @@ if surround_ok then
 end
 -- cmd 'packadd one-small-step-for-vimkind'
 
-require('settings') -- --default settings
-require('keymap') -- --keymappings
-
 if vim.g.neovide then
   require('config.neovide')
 end
 
-require 'bufferline'.setup {
-  options = {
-    separator_style = "padded_slant",
-    numbers = "buffer_id",
-    diagnostics = "nvim_lsp",
-    diagnostics_update_in_insert = false,
-    diagnostics_indicator = function(count, level, diagnostics_dict, context)
-      return "(" .. count .. ")"
-    end,
+
+cmd 'packadd firenvim'
+if vim.fn.empty(vim.g['started_by_firenvim']) == 1 then
+  cmd 'packadd galaxyline.nvim'
+  require 'config.galaxyline'
+  cmd 'packadd bufferline.nvim'
+  require 'bufferline'.setup {
+    options = {
+      separator_style = "padded_slant",
+      numbers = "buffer_id",
+      diagnostics = "nvim_lsp",
+      diagnostics_update_in_insert = false,
+      diagnostics_indicator = function(count, level, diagnostics_dict, context)
+        return "(" .. count .. ")"
+      end,
+    }
   }
-}
+else
+  require 'config.firenvim'
+end
 
 
-
-cmd 'packadd trouble.nvim'
+--[[ cmd 'packadd trouble.nvim'
 
 require 'trouble'.setup {
   signs = {
@@ -199,7 +199,7 @@ require 'trouble'.setup {
     information = "",
     other = "﫠"
   },
-}
+} ]]
 --============ Functions =================
 
 function Toggle_wrap()
@@ -292,7 +292,7 @@ cmd 'colorscheme tokyodark'
 
 -- aurora doesn't allow scope highlight from ts
 -- cmd 'packadd aurora'
-vim.g.aurora_italic = 1
+-- vim.g.aurora_italic = 1
 -- cmd 'colorscheme aurora'
 -- cmd 'colorscheme base16-atelier-savanna'
 -- cmd 'colorscheme base16-atelier-plateau'

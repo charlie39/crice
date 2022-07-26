@@ -68,14 +68,14 @@ gls.left[4] = {
 gls.left[5] = {
   FileName = {
     condition = condition.buffer_not_empty,
-    highlight = { colors.fg, colors.bg, 'bold' },
+    highlight = { colors.cyan, colors.bg, 'bold' },
     provider = 'FileName',
   },
 }
 
 gls.left[6] = {
   LineInfo = {
-    highlight = { colors.fg, colors.bg },
+    highlight = { colors.orange, colors.bg },
     provider = 'LineColumn',
     separator = ' ',
     separator_highlight = { 'NONE', colors.bg },
@@ -84,7 +84,7 @@ gls.left[6] = {
 
 gls.left[7] = {
   PerCent = {
-    highlight = { colors.fg, colors.bg, 'bold' },
+    highlight = { colors.yellow, colors.bg, 'bold' },
     provider = 'LinePercent',
     separator = ' ',
     separator_highlight = { 'NONE', colors.bg },

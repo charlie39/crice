@@ -54,30 +54,18 @@ M.on_attach = function(client, bufnr)
     -- add the preconfigured Jdt* commands
     require('jdtls.setup').add_commands()
 
-    --- update galaxyline -----
-    -- jdtls takes a retarted amount of time to start and galaxyline doesn't have any callback
-    -- so this settings basically updates the provider of the lsp section with the client.name
-    local status_ok, galaxyline = pcall(require, 'galaxyline')
-    if status_ok then
-      galaxyline.section.mid[1] = {
-        ShowLspClient = {
-          icon = ' LSP:',
-          provider = function() return client.name end,
-        },
-      }
-    end
   end
   -- launch one-small-step-for-vimkind if the client is lua
   if client.name == "sumneko_lua" then
     require('lsp.osv').setup()
   end
 
-  --telescope 
-  if  client.server_capabilities.documentSymbolProvider then
-    vim.keymap.set('n','<space>ds','<cmd>Telescope lsp_document_symbols<cr>', bufopts)
+  --telescope
+  if client.server_capabilities.documentSymbolProvider then
+    vim.keymap.set('n', '<space>ds', '<cmd>Telescope lsp_document_symbols<cr>', bufopts)
   end
   if client.server_capabilities.workspaceSymbolProvider then
-    vim.keymap.set('n','<space>ws','<cmd>Telescope  lsp_workspace_symbols<cr>',bufopts)
+    vim.keymap.set('n', '<space>ws', '<cmd>Telescope  lsp_workspace_symbols<cr>', bufopts)
   end
 
   --- lspsaga
@@ -132,6 +120,27 @@ M.on_attach = function(client, bufnr)
     })
   end
 
+  --galaxyline
+  local status_ok, galaxyline = pcall(require, 'galaxyline')
+  if status_ok then
+    local lsp_updater = function()
+      galaxyline.section.mid[1] = {
+        ShowLspClient = {
+          icon = ' LSP:',
+          provider = function() return client.name end,
+        },
+      }
+    end
+    lsp_updater()
+    local lsp_update = vim.api.nvim_create_augroup("lsp_update", { clear = true })
+    vim.api.nvim_create_autocmd("BufEnter", {
+      buffer = bufnr,
+      callback = lsp_updater,
+      desc = "update lsp",
+      group = lsp_update
+    })
+  end
+
   --UI
   vim.lsp.handlers["textDocument/signatureHelp"] = vim.lsp.with(vim.lsp.handlers.signature_help, { border = border })
   local hp = client.server_capabilities.hoverProvider
@@ -176,6 +185,10 @@ M.on_attach = function(client, bufnr)
     vim.keymap.set('n', '<space>cg', vim.lsp.codelens.get, bufopts)
     vim.keymap.set('n', '<space>cs', vim.lsp.codelens.save, bufopts)
   end
+  --- update galaxyline -----
+  -- jdtls takes a retarted amount of time to start and galaxyline doesn't have any callback
+  -- so this settings basically updates the provider of the lsp section with the client.name
+
 
 end
 

@@ -1,11 +1,7 @@
 #!/bin/bash
-set -x
+# set -x
 wtr_theme="/usr/share/rofi/themes/lb"
 ROFI=(rofi -i -dmenu -theme $wtr_theme)
-
-echo "\$\$:" $$
-echo "hash: $#"
-echo "exclam: $!"
 
 __dynamic() {
     a=( "${@}" )
