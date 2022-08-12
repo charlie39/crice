@@ -10,6 +10,7 @@
 	askpass = show
 	eol = lf
 	autocrlf = false
+	hookspath = hooks/
 [color]
 	ui = auto
 [fsck]
@@ -27,7 +28,7 @@
 	gpgsign = true
 [gui]
 	wmstate = normal
-	geometry = 1011x1005+30+29 191 190
+	geometry = 1050x918+30+29 191 190
 [mergetool "diffmerge"]
 	cmd = /usr/bin/diffmerge --merge --result=\"$MERGED\" \"$LOCAL\" \"$BASE\" \"$REMOTE\"
 	trustExitCode = true

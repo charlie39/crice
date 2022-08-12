@@ -3,7 +3,7 @@ local map = utils.map
 
 
 -- source init.lua
-map('n', '<leader>s', '<cmd>luafile $MYVIMRC<CR>')
+map('n', '<leader>s', '<cmd>w<cr><cmd>luafile $MYVIMRC<CR>')
 
 --tab traversal
 map('n', 'tt', ' <cmd>tabnew<CR>')
@@ -51,13 +51,13 @@ map('n', '<C-k>', '<C-w>k')
 map('n', '<C-l>', '<C-w>l')
 
 --terminal special
-map('n', '<leader>t', '<cmd>split | terminal<CR>')
-map('n', '<leader>vt', '<cmd>vsplit | terminal<CR>')
+map('n', '<leader>tt', '<cmd>split | terminal<CR>')
+map('n', '<leader>th', '<cmd>vsplit | terminal<CR>')
 
 --ranger
-map('n','<M-f>s','<cmd>split | term ranger<cr>')
+--[[ map('n','<M-f>s','<cmd>split | term ranger<cr>')
 map('n','<M-f>v','<cmd>vsplit | term ranger<cr>')
-map('n','<M-f>t','<cmd>tabe | term ranger<cr>')
+map('n','<M-f>t','<cmd>tabe | term ranger<cr>') ]]
 
 --Rnvimr
 map('','<M-f>','<cmd>RnvimrToggle<cr>')
@@ -74,17 +74,9 @@ map('t','<M-L>','<cmd>RnvimrResize 1,8,9,11,5<CR>')
 --multi-line
 -- map('', '<leader>v',[[vim.fn['sml#mode_on']()]])
 --
---FZF
-map('n' ,'<leader>.','<cmd>LS<cr>')
-map('n' ,'<leader><leader>.' ,'<cmd>LS!<cr>')
-map('n' ,'<leader>m' ,'<cmd>LSv<cr>')
-map('n' ,'<leader><leader>m' ,'<cmd>LSv!<cr>')
-map('n' ,'<leader>zg' ,'<cmd>Rg<cr>')
-map('n' ,'<leader>zd' ,'<cmd>FZD<cr>')
-map('n', '<leader>F', '<cmd>Files<CR>')
-map('n', '<leader>G', '<cmd>Commits<CR>')
-map('n', '<leader>b', '<cmd>Buffers<CR>')
-map('n', '<leader><leader>c', '<cmd>Colors<CR>')
+--nvim-tree
+
+map('n','<space>n','<cmd>NvimTreeToggle<cr>')
 
 -------------------- MAPPINGS ------------------------------
 map('', '<leader>y', '"+y')
@@ -117,4 +109,5 @@ map('n', '<leader>p', ':!opout <c-r>%<CR>')
 map('n', 'c', '"_c')
 
 map('n', 'W', '<cmd>w<cr>')
+map('n', '<leader><tab><tab>', '<cmd>set invlist<cr>')
 -- map('n', 'X', '<cmd>bp<CR>')

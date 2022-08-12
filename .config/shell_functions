@@ -44,9 +44,13 @@ __helper () {
     fi
 }
 #-------------------------------------------------------------------------------------------
+
+cmd() {
+    dmenu_path | fzf --preview 'bat <(file $(which {}))'
+}
+
 #editing scripts and files {local}
 function el {
-    echo "k"
     __helper
     opt=( ~cf/ ~pr/ ~sb/ ~vvt/ ~pjg/ ~/vimwiki/ )
     md=5
@@ -150,25 +154,17 @@ pacbrowse() { pacman -Qq | fzf -m --preview 'pacman -Qil {}' --layout=reverse --
 #----------------------------------------------------------------------------------------------------------------
 # 									Misc
 #----------------------------------------------------------------------------------------------------------------
-__find_a() {
-    echo "${list[@]}" | tr ' ' '\n' | tr '%' ' '
-}
+# __find_a() {
+#     echo "${list[@]}" | tr ' ' '\n' | tr '%' ' '
+# }
 
 #watch videos #rofi
-wtr() {
-    local opt=(~vv/ ~M/) md=6
-    __dynamic "$@"
-    list=( $(find -L $(echo $opt)  -maxdepth $md -type f -size +1M | egrep ".*\.[mawo].{2,3}" | sed '/\.srt$/d' |tr ' ' '%') )
-    pattern=( $( __find_a | sed -E 's/^([^/]*\/){4}//;s/\..{2,5}$//' |  ${ROFI[@]} ) ) || return
-    __find_a | grep -F "${pattern}"| xargs -rd $'\n'  sh -c '"$VPLAYER" "$@";echo \""$@"\"' ''
-}
 # wtr() {
 #     local opt=(~vv/ ~M/) md=6
 #     __dynamic "$@"
-    # find -L $(echo $opt)  -maxdepth $md | grep -F "$(find -L $(echo $opt) -maxdepth $md -size +1M|\
-    # egrep ".*\.[mawo].{2,3}" |cut -d'/' -f5- | sed -E 's/\..{2,5}$//' | ${ROFI[@]} $wtr_theme |\
-    # sed 's/$/./' )"| awk -F '.' '!/\.srt$/&&FNR==1&&NF>1'|\
-    # xargs -rd $'\n'  sh -c '"$VPLAYER" "$@";echo \""$@"\"' ''
+#     list=( $(find -L $(echo $opt)  -maxdepth $md -type f -size +1M | egrep ".*\.[mawo].{2,3}" | sed '/\.srt$/d' |tr ' ' '%') )
+#     pattern=( $( __find_a | sed -E 's/^([^/]*\/){4}//;s/\..{2,5}$//' |  ${ROFI[@]} ) ) || return
+#     __find_a | grep -F "${pattern}"| xargs -rd $'\n'  sh -c '"$VPLAYER" "$@";echo \""$@"\"' ''
 # }
 fplay() {
     #run karma periodically to keep the playlist updated

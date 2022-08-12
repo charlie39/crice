@@ -39,7 +39,7 @@ if [ $(pgrep Xorg) ];then
         'xset dpms force off;xrandr --output "${PRIMARY_DISPLAY:-eDP1}" --brightness 1;i3lock -e -f -i $HOME/Pictures/Wallpapers/Arch-Dark/Kali-linux-themed-arch-1920x1080.jpg' \
         '' \
     --timer 3600 \
-        'systemctl suspend'  \
+        'systemctl suspend-then-hibernate'  \
         '' &
 
     ssh-agent dwm
