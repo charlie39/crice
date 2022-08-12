@@ -1,5 +1,4 @@
 --======= | DEFAULT OPTIONS || ======-----
-
 vim.g.mapleader = ','
 vim.wo.number = true
 vim.wo.rnu = true
@@ -65,9 +64,18 @@ require('packer').startup(function(use)
 
   use { 'mhartington/formatter.nvim', opt = true }
 
-  use { 'L3MON4D3/LuaSnip', requires = { 'saadparwaiz1/cmp_luasnip' } }
+  use { 'L3MON4D3/LuaSnip',
+    requires = { 'saadparwaiz1/cmp_luasnip',
+      -- 'rafamadriz/friendly-snippets',
+      'molleweide/LuaSnip-snippets.nvim',
+    },
+    config = function() require 'config.luasnip' end
+  }
+  -- use { '
   use { 'hrsh7th/cmp-path', requires = 'hrsh7th/nvim-cmp' }
   use { 'hrsh7th/cmp-nvim-lua', requires = 'hrsh7th/nvim-cmp' }
+  use { 'tzachar/cmp-tabnine', run = './install.sh',
+    requires = 'hrsh7th/nvim-cmp' }
   use { 'hrsh7th/nvim-cmp',
     requires = { 'hrsh7th/cmp-nvim-lsp', 'hrsh7th/cmp-path' },
     wants = 'hrsh7th/cmp-nvim-lua',
@@ -97,7 +105,7 @@ require('keymap') -- --keymappings
 
 ------plugin configs
 
-require 'config.luasnip'
+-- require 'config.luasnip'
 
 
 cmd 'packadd nvim-jdtls'
@@ -109,7 +117,7 @@ cmd 'packadd nvim-surround'
 cmd 'packadd nvim-tree.lua'
 cmd 'packadd vim-fugitive'
 
-local tree_ok, tree = pcall(require,'nvim-tree')
+local tree_ok, tree = pcall(require, 'nvim-tree')
 if tree_ok then
   tree.setup()
 end
@@ -261,11 +269,14 @@ vim.api.nvim_create_autocmd('FileType', {
 vim.tbl_map(function(c) cmd(string.format('autocmd  %s', c)) end, {
   'VimLeave *.tex silent !texclear %',
   'FileType * setlocal formatoptions-=c formatoptions-=r formatoptions-=o',
-  'BufWritePre * %s/\\\\+$//e',
-  'BufWritepre * $s/\\n\\+\\%$//e',
+  'BufWritePre * %s/\\s\\+$//e',
+  -- 'BufWritepre * $s/\\n\\+\\%$//e',
+  -- this removes all empty lines
+  -- 'BufWritepre * %s/\\n\\+$//e',
   'BufWritePost files,directories,aliasrc !shortcuts && source ~/.config/shortcutrc',
   'BufWritePost *Xresources,*Xdefaults !xrdb %',
   'BufWritePost *sxhkdrc !pkill -USR1 sxhkd',
+  'FileType xml,html set sts=2 shiftwidth=2',
 })
 
 ------------------ Colorchemes -----------------------------

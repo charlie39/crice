@@ -77,17 +77,6 @@ map('t','<M-L>','<cmd>RnvimrResize 1,8,9,11,5<CR>')
 --nvim-tree
 
 map('n','<space>n','<cmd>NvimTreeToggle<cr>')
---FZF
-map('n' ,'<leader>.','<cmd>LS<cr>')
-map('n' ,'<leader><leader>.' ,'<cmd>LS!<cr>')
-map('n' ,'<leader>m' ,'<cmd>LSv<cr>')
-map('n' ,'<leader><leader>m' ,'<cmd>LSv!<cr>')
-map('n' ,'<leader>zg' ,'<cmd>Rg<cr>')
-map('n' ,'<leader>zd' ,'<cmd>FZD<cr>')
-map('n', '<leader>F', '<cmd>Files<CR>')
-map('n', '<leader>G', '<cmd>Commits<CR>')
-map('n', '<leader>b', '<cmd>Buffers<CR>')
-map('n', '<leader><leader>c', '<cmd>Colors<CR>')
 
 -------------------- MAPPINGS ------------------------------
 map('', '<leader>y', '"+y')
@@ -120,4 +109,5 @@ map('n', '<leader>p', ':!opout <c-r>%<CR>')
 map('n', 'c', '"_c')
 
 map('n', 'W', '<cmd>w<cr>')
+map('n', '<leader><tab><tab>', '<cmd>set invlist<cr>')
 -- map('n', 'X', '<cmd>bp<CR>')

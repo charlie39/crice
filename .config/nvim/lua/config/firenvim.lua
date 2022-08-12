@@ -17,7 +17,7 @@ vim.g.firenvim_config = {
   localSettings = {
     [".*"] = {
       cmdline = "firenvim",
-      content = "text",
+      -- content = "text",
       priority = 0,
       selector = "textarea",
       takeover = "always"
@@ -52,9 +52,17 @@ vim.g.firenvim_config = {
 
  ]]
 
-vim.api.nvim_exec([[
-    augroup firenvim
-        autocmd!
-        autocmd BufEnter github.com_*.txt set filetype=markdown
-        autocmd BufEnter *.txt setlocal filetype=markdown.pandoc
-    augroup END]], false)
+-- local fire = vim.api.nvim_create_augroup('firenvim_autocmd', { clear = true })
+
+--[[ vim.api.nvim_create_autocmd('BufEnter', {
+  pattern = 'github.com_*.txt',
+  command = 'setlocal filetype=markdown',
+  desc = 'setlocal github*.txt to markdown',
+  group = fire,
+})
+vim.api.nvim_create_autocmd('BufEnter', {
+  pattern = '*.txt',
+  command = 'setlocal filetype=markdown,pandoc',
+  desc = 'setlocal *.txt to markdown,pandoc',
+  group = fire,
+}) ]]

@@ -14,7 +14,7 @@ M.on_attach = function(client, bufnr)
   vim.api.nvim_buf_set_option(bufnr, 'omnifunc', 'v:lua.vim.lsp.omnifunc')
 
 
-  -- Mappings.
+  -- Mappings.on_a
   vim.keymap.set('n', 'gD', vim.lsp.buf.declaration, bufopts)
   vim.keymap.set('n', 'gd', vim.lsp.buf.definition, bufopts)
   vim.keymap.set('n', 'K', vim.lsp.buf.hover, bufopts)
@@ -61,6 +61,9 @@ M.on_attach = function(client, bufnr)
   end
 
   --telescope
+  vim.keymap.set('n', '<space>wd', ':lua require"telescope.builtin".diagnostics()<cr>', bufopts)
+  vim.keymap.set('n', '<space>gr', ':lua require"telescope.builtin".lsp_references()<cr>',bufopts)
+
   if client.server_capabilities.documentSymbolProvider then
     vim.keymap.set('n', '<space>ds', '<cmd>Telescope lsp_document_symbols<cr>', bufopts)
   end
@@ -71,17 +74,18 @@ M.on_attach = function(client, bufnr)
   --- lspsaga
   local lspsaga_ok, _ = pcall(require, 'lspsaga')
   if lspsaga_ok then
-    vim.keymap.set('n', '<space>rn', require('lspsaga.rename').lsp_rename, bufopts)
-    vim.keymap.set('n', '<space>pd', require('lspsaga.definition').preview_definition, bufopts)
-    vim.keymap.set("n", "<space>sh", require("lspsaga.signaturehelp").signature_help, bufopts)
-    vim.keymap.set("v", "<space>ra", '<cmd>Lspsaga range_code_action<cr>', bufopts)
+    vim.keymap.set('n', '<space>rn', require'lspsaga.rename'.lsp_rename, bufopts)
+    vim.keymap.set('n', '<space>pd', require'lspsaga.definition'.preview_definition, bufopts)
+    vim.keymap.set('n', '<space>sh', require'lspsaga.signaturehelp'.signature_help, bufopts)
+    vim.keymap.set('v', '<space>ra', '<cmd>Lspsaga range_code_action<cr>', bufopts)
+    vim.keymap.set('n', '<space>sf', '<cmd>Lspsaga lsp_finder<cr>', bufopts)
 
-    vim.keymap.set("n", "<space>cD", require("lspsaga.diagnostic").show_line_diagnostics,
+    vim.keymap.set('n', '<space>cD', require'lspsaga.diagnostic'.show_line_diagnostics,
       { silent = true, noremap = true })
 
     -- jump diagnostic
-    vim.keymap.set("n", "[e", require("lspsaga.diagnostic").goto_prev, bufopts)
-    vim.keymap.set("n", "]e", require("lspsaga.diagnostic").goto_next, bufopts)
+    vim.keymap.set("n", "[e", require'lspsaga.diagnostic'.goto_prev, bufopts)
+    vim.keymap.set("n", "]e", require'lspsaga.diagnostic'.goto_next, bufopts)
     -- or jump to error
     vim.keymap.set("n", "[E", function()
       require("lspsaga.diagnostic").goto_prev({ severity = vim.diagnostic.severity.ERROR })

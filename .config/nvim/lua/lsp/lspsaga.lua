@@ -14,7 +14,10 @@ M.setup = function()
         def = '  ',
         ref = '諭 ',
         link = '  ',
-      }
+      },
+      --[[ code_action_lightbulb = {
+        enable = false,
+      }, ]]
     }
   end
   local function get_file_name(include_path)

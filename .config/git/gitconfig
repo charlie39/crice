@@ -10,6 +10,7 @@
 	askpass = show
 	eol = lf
 	autocrlf = false
+	hookspath = hooks/
 [color]
 	ui = auto
 [fsck]

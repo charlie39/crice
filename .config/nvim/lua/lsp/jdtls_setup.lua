@@ -28,6 +28,8 @@ function M.setup()
 
     cmd = { 'java-lsp', workspace_dir },
     root_dir = require('jdtls.setup').find_root({ '.git', 'mvnw', 'gradlew', 'pom.xml', 'build.gradle' }),
+    -- root_dir = vim.fn.getcwd(),
+    -- filetypes =  'java',
     settings = {
       java = {
         signatureHelp = { enabled = true };

@@ -10,7 +10,7 @@ opt('w', 'mouse', 'a')                    -- Mouse Support
 opt('b', 'smartindent', true)             -- Insert indents automatically
 opt('b', 'tabstop', indent)               -- Number of spaces tabs count for
 opt('b', 'textwidth', width)              -- Maximum width of text
-opt('o', 'completeopt', 'menuone,noselect')  -- Completion options
+opt('o', 'completeopt', 'menuone,noinsert,noselect')  -- Completion options
 opt('o', 'hidden', true)                  -- Enable background buffers
 opt('o', 'ignorecase', true)              -- Ignore case
 opt('o', 'joinspaces', false)             -- No double spaces with join

@@ -119,8 +119,18 @@ require('lspconfig')['omnisharp'].setup {
   root_dir = function() return vim.fn.getcwd() end
 }
  ]]
-------------------------------------------------------------------------
+ ----------------------------html -------------------------------------
+ require'lspconfig'.html.setup{
+   on_attach = on_attach,
+   capabilities = capabilities
+ }
 
+----------------------------- xml -------------------------------------
+
+ require'lspconfig'.lemminx.setup{
+   on_attach = on_attach,
+   capabilities = capabilities
+ }
 
 ------------------------------------------------------------------------
 

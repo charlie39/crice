@@ -4,8 +4,10 @@
 !! Set a default font and font size as below:
 /* *.font: Hack:size=12 */
 /* *.font: CascadiaCodePL:size=14 */
-*.font: FiraCode Nerd Font:size=12
-
+/* *.font: FiraCode Nerd Font:size=12 */
+/* *.font: FiraCode iScript:size=12 */
+*.font: JetBrainsMono Nerd Font:size=12
+/* *.font: JoyPixels:size=12 */
 /* name		dark	light */
 /* black	0	8 */
 /* red		1	9 */
