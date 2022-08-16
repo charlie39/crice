@@ -62,7 +62,8 @@ function M.setup()
           },
         },
         maven = {
-          downloadSources = true
+          downloadSources = true,
+          updateSnapshots = true,
         },
         autobuild = { enabled = true },
         completion = {

@@ -29,7 +29,6 @@ require('lspconfig')['sumneko_lua'].setup {
         library = {
           [vim.fn.expand('$VIMRUNTIME/lua')] = true,
           [vim.fn.expand('$VIMRUNTIME/lua/vim/lsp')] = true,
-          [vim.fn.expand(vim.fn.stdpath('config') .. '/lua')] = true,
         },
       },
       -- Do not send telemetry data containing a randomized but unique identifier
