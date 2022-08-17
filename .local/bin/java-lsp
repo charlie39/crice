@@ -3,7 +3,7 @@
 # NOTE:
 JDTLS_CONFIG="/usr/share/java/jdtls/config_linux"
 JDTLS_PLUGINS="/usr/share/java/jdtls/plugins"
-JAR=$JDTLS_PLUGINS"/org.eclipse.equinox.launcher_*.jar"
+JAR=$(echo  $JDTLS_PLUGINS"/org.eclipse.equinox.launcher_*.jar")
 LOMBOK="/usr/lib/lombok-common/lombok.jar"
 
   # -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=localhost:8000 \
@@ -17,8 +17,8 @@ GRADLE_HOME="$HOME/.local/lib/sdkman/candidates/gradle/current/bin/gradle" java 
   -Dlog.level=ALL \
   -Xms256M \
   -Xmx1G \
-  -jar $(echo "$JAR") \
   -javaagent:$LOMBOK \
+  -jar $JAR \
   -configuration "$JDTLS_CONFIG" \
   -data "${1:-$HOME/.cache/jdtls_workspaces}" \
   --add-modules=ALL-SYSTEM \

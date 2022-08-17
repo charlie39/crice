@@ -1,15 +1,15 @@
 local M = {}
 
 function M.setup()
-  local home = os.getenv('HOME')
-  local maven_home = os.getenv('MAVEN_HOME')
+  local home = vim.env.HOME
+  local maven_home = vim.env.MAVEN_HOME
   local project_name = vim.fn.fnamemodify(vim.fn.getcwd(), ':p:h:t')
-  local workspace_dir = '/home/charlie/.cache/jdtls_workspaces/' .. project_name
-
-  local bundles = { vim.fn.glob(vim.fn.stdpath('data') ..
-    '/jars/vscode-java-debug/extension/server/com.microsoft.java.debug.plugin-*.jar') }
+  local workspace_dir = home .. '/.cache/jdtls_workspaces/' .. project_name
+  local eclipseJavaGoogleStyle = vim.fn.stdpath('config') .. '/rules/eclipse-java-google-style.xml'
 
   local jars = vim.fn.stdpath('data') .. '/jars/'
+  local bundles = { vim.fn.glob(jars .. 'vscode-java-debug/extension/server/com.microsoft.java.debug.plugin-*.jar') }
+
   for _, bundle in ipairs(vim.split(vim.fn.glob(jars .. 'vscode-java-test/extension/server/*.jar'), '\n')) do
     table.insert(bundles, bundle)
   end
@@ -34,6 +34,12 @@ function M.setup()
       java = {
         signatureHelp = { enabled = true };
         contentProvider = { preferred = 'fernflower' };
+        implementationsCodeLens = {
+          enabled = true
+        };
+        referencesCodeLens = {
+          enabled = true
+        };
         templates = {
           fileHeader = {
             "/**",
@@ -49,7 +55,7 @@ function M.setup()
             " * @description: ${type_name}",
             " */",
           }
-        },
+        };
         import = {
           maven = { enabled = true },
           exclusions = {
@@ -60,12 +66,12 @@ function M.setup()
             "**/Frontend/**",
             "**/CSV_Aggregator/**"
           },
-        },
+        };
         maven = {
           downloadSources = true,
           updateSnapshots = true,
-        },
-        autobuild = { enabled = true },
+        };
+        autobuild = { enabled = true };
         completion = {
           favoriteStaticMembers = {
             "org.hamcrest.MatcherAssert.assertThat",
@@ -88,8 +94,12 @@ function M.setup()
         codeGeneration = {
           generateComments = true,
           useBlocks = true,
+          hashCodeEquals = {
+            userIntanceOf = true
+          },
           toString = {
-            template = "${object.className}{${member.name()}=${member.value}, ${otherMembers}}"
+            template = "${object.className}{${member.name()}=${member.value}, ${otherMembers}}",
+            codeStyle = "STRING_BUILDER_CHAINED"
           }
         };
         configuration = {
@@ -107,6 +117,12 @@ function M.setup()
               path = "/usr/lib/jvm/java-18-jdk/",
             }
           }
+        };
+        format = {
+          settings = {
+            url = eclipseJavaGoogleStyle,
+            profile = 'GoogleStyle'
+          }
         }
       },
     },
@@ -117,6 +133,8 @@ function M.setup()
 
     flags = {
       allow_incremental_sync = true,
+      debounce_text_changes = 150,
+      server_side_fuzzy_completion = true,
     },
     capabilities = {
       workspace = {
