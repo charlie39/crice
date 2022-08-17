@@ -19,7 +19,6 @@ end
 require('packer').startup(function(use)
   use { 'wbthomason/packer.nvim' }
   use { 'ellisonleao/glow.nvim', branch = 'main' }
-
   use { 'junegunn/fzf.vim', disable = true, opt = true,
     config = function() require('config.fzf') end,
     cmd = { 'LS', 'LSv', 'FZF', 'FZD' } }
@@ -215,6 +214,69 @@ function Toggle_wrap()
   opt('w', 'linebreak', not vim.wo.linebreak)
   opt('w', 'wrap', not vim.wo.wrap)
 end
+
+-- commands
+vim.api.nvim_create_user_command('Chdir', function()
+  vim.ui.input({ prompt = "Enter Path: " }, function(input)
+    if input == "null" then
+      print("jhgjhgj")
+      return
+    end
+    local dir = vim.fn.fnamemodify(input, ':p')
+    if vim.fn.isdirectory(dir) then
+      vim.fn.chdir(dir)
+      vim.notify("now in " .. dir)
+    else
+      vim.notify("Not a directory")
+    end
+  end)
+end, {})
+
+vim.keymap.set({ 'i', 'n' }, '<M-x>', '<cmd>Chdir<cr>', { noremap = true })
+
+local ls_commands = {
+  ['jdt.ls'] = "mvn spring-boot:run",
+  sumneko_lua = 'htop',
+  clangd = "make && make install",
+  rust = "rustc run"
+}
+
+vim.api.nvim_create_user_command("Runn", function()
+  local clients = {}
+  clients = vim.lsp.buf_get_clients()
+  if next(clients) then
+    for _, client in pairs(clients) do
+      for ls, comds in pairs(ls_commands) do
+        if ls == client.config.name then
+          local root_dir = client.config.root_dir
+          if root_dir then
+            local fts = {}
+            fts = client.config.filetypes
+            local filetype
+            if type(fts) == 'table' then
+              for _, ft in pairs(fts) do
+                if vim.bo.filetype == ft then
+                  filetype = ft
+                  break
+                end
+              end
+            elseif type(fts) == 'string' then
+              filetype = fts
+            elseif type(fts) == 'nil' then
+              filetype = vim.bo.filetype
+            end
+            if filetype ~= 'nil' then
+              vim.fn.chdir(root_dir)
+              vim.fn.jobstart({ os.getenv('TERMINAL'), '-e', comds })
+            end
+          end
+        end
+      end
+    end
+  end
+end, {})
+
+vim.keymap.set('n', '<leader>C', '<cmd>Runn<cr>', { silent = true, noremap = true })
 
 -- ============= AUTOCMDS =================
 
