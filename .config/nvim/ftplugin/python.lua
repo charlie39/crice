@@ -1,5 +1,5 @@
 -- ftplugin/python.lua
-require("nvim-surround").buffer_setup({
+--[[ require("nvim-surround").buffer_setup({
   delimiters = {
     pairs = {
       ["f"] = function()
@@ -20,4 +20,4 @@ require("nvim-surround").buffer_setup({
       end,
     }
   }
-})
+}) ]]

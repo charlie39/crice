@@ -23,8 +23,11 @@ require('packer').startup(function(use)
     config = function() require('config.fzf') end,
     cmd = { 'LS', 'LSv', 'FZF', 'FZD' } }
   use { 'b3nj5m1n/Kommentary' }
-  use { 'williamboman/nvim-lsp-installer' }
+  -- use { 'williamboman/nvim-lsp-installer' }
   use { 'neovim/nvim-lspconfig', config = function() require 'lsp' end }
+  use { 'williamboman/mason.nvim',
+    requires = { 'williamboman/mason-lspconfig.nvim', config = require 'mason-lspconfig'.setup() },
+    config = require 'mason'.setup() }
   use { 'glepnir/lspsaga.nvim', branch = "main" }
   use { 'onsails/lspkind.nvim' }
   use { 'folke/trouble.nvim', opt = true }

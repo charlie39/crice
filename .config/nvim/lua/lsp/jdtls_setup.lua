@@ -1,18 +1,23 @@
 local M = {}
 
 function M.setup()
+
   local home = vim.env.HOME
   local maven_home = vim.env.MAVEN_HOME
   local project_name = vim.fn.fnamemodify(vim.fn.getcwd(), ':p:h:t')
   local workspace_dir = home .. '/.cache/jdtls_workspaces/' .. project_name
-  local eclipseJavaGoogleStyle = vim.fn.stdpath('config') .. '/rules/eclipse-java-google-style.xml'
-
+  local lombokjar = '/usr/lib/lombok-common/lombok.jar'
+  local eclipse_java_google_style = vim.fn.stdpath('config') .. '/rules/eclipse-java-google-style.xml'
   local jars = vim.fn.stdpath('data') .. '/jars/'
+
+  -- java debug jars
   local bundles = { vim.fn.glob(jars .. 'vscode-java-debug/extension/server/com.microsoft.java.debug.plugin-*.jar') }
 
+  -- java test jars
   for _, bundle in ipairs(vim.split(vim.fn.glob(jars .. 'vscode-java-test/extension/server/*.jar'), '\n')) do
     table.insert(bundles, bundle)
   end
+  -- importing eclipse project
   for _, bundle in ipairs(vim.split(vim.fn.glob(jars .. 'vscode-pde/extension/server/*.jar'), '\n')) do
     table.insert(bundles, bundle)
   end
@@ -26,7 +31,9 @@ function M.setup()
   -- See `:help vim.lsp.start_client` for an overview of the supported `config` options.
   local config = {
 
-    cmd = { 'java-lsp', workspace_dir },
+    -- custom script,for further configurations
+    -- cmd = { 'java-lsp', workspace_dir },
+    cmd = { 'jdtls', '--jvm-arg=-javaagent:' .. lombokjar, '-data', workspace_dir },
     root_dir = require('jdtls.setup').find_root({ '.git', 'mvnw', 'gradlew', 'pom.xml', 'build.gradle' }),
     -- root_dir = vim.fn.getcwd(),
     -- filetypes =  'java',
@@ -109,8 +116,15 @@ function M.setup()
           },
           runtimes = {
             {
+              name = "JavaSE-1.8",
+              path = "/usr/lib/jvm/java-18-jdk/",
+            },
+            {
               name = "JavaSE-11",
               path = "/usr/lib/jvm/11.0.6.j9-adpt/",
+            },
+            { name = "JavaSE-17",
+              path = vim.env.JAVA_HOME,
             },
             {
               name = "JavaSE-18",
@@ -120,7 +134,7 @@ function M.setup()
         };
         format = {
           settings = {
-            url = eclipseJavaGoogleStyle,
+            url = eclipse_java_google_style,
             profile = 'GoogleStyle'
           }
         }
