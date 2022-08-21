@@ -79,7 +79,8 @@ function M.setup()
       type = 'java',
       name = "Java Launch",
       request = 'launch',
-      projectName = vim.fn.fnamemodify(vim.fn.getcwd(),':p:h:t') or nil,
+      -- projectName = vim.fn.fnamemodify(vim.fn.getcwd(),':p:h:') or nil,
+      -- projectName = vim.fn.fnamemodify(vim.fn.getcwd(),':p:h:t') or nil,
       program = "${file}",
       hostName = "127.0.0.1",
       port = 8000
