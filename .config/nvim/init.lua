@@ -23,8 +23,11 @@ require('packer').startup(function(use)
     config = function() require('config.fzf') end,
     cmd = { 'LS', 'LSv', 'FZF', 'FZD' } }
   use { 'b3nj5m1n/Kommentary' }
-  use { 'williamboman/nvim-lsp-installer' }
+  -- use { 'williamboman/nvim-lsp-installer' }
   use { 'neovim/nvim-lspconfig', config = function() require 'lsp' end }
+  use { 'williamboman/mason.nvim',
+    requires = { 'williamboman/mason-lspconfig.nvim', config = require 'mason-lspconfig'.setup() },
+    config = require 'mason'.setup() }
   use { 'glepnir/lspsaga.nvim', branch = "main" }
   use { 'onsails/lspkind.nvim' }
   use { 'folke/trouble.nvim', opt = true }
@@ -55,12 +58,10 @@ require('packer').startup(function(use)
   use { 'nvim-treesitter/nvim-treesitter-textobjects', opt = true }
   use { 'p00f/nvim-ts-rainbow', opt = true }
   use { 'kylechui/nvim-surround', opt = true }
-
   use { 'mfussenegger/nvim-dap' }
   use { 'rcarriga/nvim-dap-ui' }
   use { 'jbyuki/one-small-step-for-vimkind', opt = true, requires = 'mfussenegger/nvim-dap',
     config = function() require 'lsp.osv' end, ft = { '.lua' } }
-
   use { 'mhartington/formatter.nvim', opt = true }
 
   use { 'L3MON4D3/LuaSnip',
@@ -88,15 +89,25 @@ require('packer').startup(function(use)
   use { 'kevinhwang91/rnvimr', opt = true, cmd = 'RnvimrToggle' }
   use { 'kyazdani42/nvim-tree.lua', opt = true, keys = ',n',
     tag = 'nightly', config = function() require 'nvim-tree'.setup() end }
-
+  use { 'charlie39/OneStop.nvim', branch = 'main', config = require 'onestop'.setup {
+    terminal = { 'alacritty', '-e' }, layout = { width = 180, height = 48 }
+  } }
 end)
 
 
 --================ BASICS ===================
 
+-- require'onestop'.setup({ terminal = { 'kitty', '-e' }})
+require 'onestop'.setup {
+  terminal = { 'alacritty', '-e' },
+  layout = {
+    width = 140,
+    height = 40,
+  }
+}
 
-vim.keymap.set('n', 'C-\\', ':PackerLoad<space><Tab>', { noremap = true })
-vim.keymap.set('n', '<C-]>', ':packadd <space>Tab', { noremap = true })
+vim.keymap.set('n', '<C-\\>', ':PackerLoad<space><Tab>', { noremap = true })
+vim.keymap.set('n', '<C-]>', ':packadd <space><Tab>', { noremap = true })
 
 require('settings') -- --default settings
 require('keymap') -- --keymappings
@@ -115,6 +126,16 @@ cmd 'packadd nvim-treesitter-textobjects'
 cmd 'packadd nvim-surround'
 cmd 'packadd nvim-tree.lua'
 cmd 'packadd vim-fugitive'
+
+--merge 3 way conflict
+local opts = { noremap = true, silent = true }
+vim.keymap.set('n', '<leader>gd', '<cmd>Gdiffsplit!<cr>', opts)
+vim.keymap.set('n', '<leader>gh', '<cmd>diffget //2<cr>', opts)
+vim.keymap.set('n', '<leader>gl', '<cmd>diffget //3<cr>', opts)
+vim.keymap.set('n', '<leader>gw', '<cmd>Gwrite<cr>', opts)
+vim.keymap.set('n', '<leader>grc', '<cmd>Git rebase --continue<cr>', opts)
+vim.keymap.set('n', '<leader>grs', '<cmd>Git rebase --skip<cr>', opts)
+vim.keymap.set('n', '<leader>gra', '<cmd>Git rebase --abort<cr>', opts)
 
 local tree_ok, tree = pcall(require, 'nvim-tree')
 if tree_ok then
@@ -216,67 +237,22 @@ function Toggle_wrap()
 end
 
 -- commands
-vim.api.nvim_create_user_command('Chdir', function()
-  vim.ui.input({ prompt = "Enter Path: " }, function(input)
-    if input == "null" then
-      print("jhgjhgj")
+vim.api.nvim_create_user_command('Chdir', function(opts)
+  vim.ui.input({ prompt = "Enter Path: ", completion = "file" }, function(input)
+    if not vim.fn.isdirectory(vim.fn.glob(input)) then
+      vim.notify("not a directory")
       return
     end
-    local dir = vim.fn.fnamemodify(input, ':p')
-    if vim.fn.isdirectory(dir) then
-      vim.fn.chdir(dir)
-      vim.notify("now in " .. dir)
-    else
-      vim.notify("Not a directory")
-    end
+    vim.fn.chdir(input)
+    -- TODO
+    -- reload nvim tree explorer
+    -- require'nvim-tree'.explorer.relaod()
   end)
-end, {})
+end, { nargs = "?", complete = 'file' })
 
 vim.keymap.set({ 'i', 'n' }, '<M-x>', '<cmd>Chdir<cr>', { noremap = true })
 
-local ls_commands = {
-  ['jdt.ls'] = "mvn spring-boot:run",
-  sumneko_lua = 'htop',
-  clangd = "make && make install",
-  rust = "rustc run"
-}
 
-vim.api.nvim_create_user_command("Runn", function()
-  local clients = {}
-  clients = vim.lsp.buf_get_clients()
-  if next(clients) then
-    for _, client in pairs(clients) do
-      for ls, comds in pairs(ls_commands) do
-        if ls == client.config.name then
-          local root_dir = client.config.root_dir
-          if root_dir then
-            local fts = {}
-            fts = client.config.filetypes
-            local filetype
-            if type(fts) == 'table' then
-              for _, ft in pairs(fts) do
-                if vim.bo.filetype == ft then
-                  filetype = ft
-                  break
-                end
-              end
-            elseif type(fts) == 'string' then
-              filetype = fts
-            elseif type(fts) == 'nil' then
-              filetype = vim.bo.filetype
-            end
-            if filetype ~= 'nil' then
-              vim.fn.chdir(root_dir)
-              vim.fn.jobstart({ os.getenv('TERMINAL'), '-e', comds })
-            end
-          end
-        end
-      end
-    end
-  end
-end, {})
-
-vim.keymap.set('n', '<leader>C', '<cmd>Runn<cr>', { silent = true, noremap = true })
 
 -- ============= AUTOCMDS =================
 
@@ -338,6 +314,7 @@ vim.tbl_map(function(c) cmd(string.format('autocmd  %s', c)) end, {
   'BufWritePost files,directories,aliasrc !shortcuts && source ~/.config/shortcutrc',
   'BufWritePost *Xresources,*Xdefaults !xrdb %',
   'BufWritePost *sxhkdrc !pkill -USR1 sxhkd',
+  'BufEnter *.xdefaults set filetype=xdefaults',
   'FileType xml,html set sts=2 shiftwidth=2',
 })
 

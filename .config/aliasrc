@@ -37,6 +37,7 @@ alias  \
 	rfba="sudo rfkill block all" \
 	vf="vifm" \
 	p="sudo pacman --color auto" \
+    psyu="p -Syu" \
 
 # Some other stuff
 alias  \

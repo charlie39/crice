@@ -37,6 +37,7 @@ hash -d prc=~/packages/repos/crice
 hash -d prr=~/packages/repos/river
 hash -d prd=~/packages/repos/dwm
 hash -d prl=~/packages/repos/dwl
+hash -d pro=~/packages/repos/OneStop.nvim
 hash -d prdb=~/packages/repos/dwmblocks
 hash -d cac=~/.cache
 hash -d cacp=~/.cache/paru

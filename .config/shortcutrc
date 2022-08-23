@@ -37,6 +37,7 @@ prc="cd ~/packages/repos/crice && lsd" \
 prr="cd ~/packages/repos/river && lsd" \
 prd="cd ~/packages/repos/dwm && lsd" \
 prl="cd ~/packages/repos/dwl && lsd" \
+pro="cd ~/packages/repos/OneStop.nvim && lsd" \
 prdb="cd ~/packages/repos/dwmblocks && lsd" \
 cac="cd ~/.cache && lsd" \
 cacp="cd ~/.cache/paru && lsd" \

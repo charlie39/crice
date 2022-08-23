@@ -3,12 +3,13 @@ local map = utils.map
 
 
 -- source init.lua
-map('n', '<leader>s', '<cmd>w<cr><cmd>luafile $MYVIMRC<CR>')
+map('n', '<leader>s', '<cmd>w<cr><cmd>source $MYVIMRC<CR>')
 
 --tab traversal
-map('n', 'tt', ' <cmd>tabnew<CR>')
+map('n', 'tt', '<cmd>tabnew<CR>')
 map('n', 'TT', '<cmd>tabclose<CR>')
-map('n', 'GT ',' <cmd>-tabnext<CR>')
+map('n', '<TAB>','<cmd>-tabnext<CR>')
+map('n', 'q<TAB>','<cmd>tabprev<CR>')
 map('n', '<M-1>', '<cmd>1tabnext<CR>')
 map('n', '<M-2>', '<cmd>2tabnext<CR>')
 map('n', '<M-3>', '<cmd>3tabnext<CR>')
@@ -61,14 +62,14 @@ map('n','<M-f>t','<cmd>tabe | term ranger<cr>') ]]
 
 --Rnvimr
 map('','<M-f>','<cmd>RnvimrToggle<cr>')
-
 map('t','<M-i>','<cmd>RnvimrResize<CR>')
-
 --  Resize floating window by special preset layouts
 map('t','<M-L>','<cmd>RnvimrResize 1,8,9,11,5<CR>')
 
 --  Resize floating window by single preset layout
 -- map('t','<M-Y>','<cmd>RnvimrResize 6<CR>')
+--lazygit
+map('n','<leader>lg','<cmd>term lazygit<cr>')
 
 
 --multi-line
@@ -102,12 +103,13 @@ map('n', '<leader>x', '<cmd>conf qa<CR>')
 map('t', '<ESC>', '&filetype == "fzf" ? "\\<ESC>" : "\\<C-\\>\\<C-n>"' , {expr = true})
 map('t', 'jk', '<ESC>', {noremap = false})
 map('n','Q','zq')
-map('n','<leader>c', '<cmd>w! <bar> !compiler %<CR>')
+map('n','<leader>cc', '<cmd>w! <bar> !compiler %<CR>')
 map('n', '<leader>p', ':!opout <c-r>%<CR>')
+
 --cool mappings
 
 map('n', 'c', '"_c')
 
 map('n', 'W', '<cmd>w<cr>')
-map('n', '<leader><tab><tab>', '<cmd>set invlist<cr>')
+-- map('n', '<leader><tab><tab>', '<cmd>set invlist<cr>')
 -- map('n', 'X', '<cmd>bp<CR>')

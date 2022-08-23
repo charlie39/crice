@@ -1,4 +1,3 @@
-require('nvim-lsp-installer').setup()
 -- ========================== |  lspconfig  | ==================================
 
 -- Setup cmp
@@ -104,6 +103,13 @@ require('lspconfig')['ltex'].setup {
   on_init = on_init
 }
 
+--------------------------kotlin -----------------------------------------
+
+require'lspconfig'.kotlin_language_server.setup {
+  on_attach = on_attach,
+  capabilities = capabilities,
+}
+
 --------------------------csharp ------------------------------------
 require('lspconfig')['omnisharp'].setup {
   on_attach = on_attach,
@@ -118,19 +124,51 @@ require('lspconfig')['omnisharp'].setup {
   root_dir = function() return vim.fn.getcwd() end
 }
  ]]
- ----------------------------html -------------------------------------
- require'lspconfig'.html.setup{
-   on_attach = on_attach,
-   capabilities = capabilities
- }
+----------------------------html -------------------------------------
+require 'lspconfig'.html.setup {
+  on_attach = on_attach,
+  capabilities = capabilities
+}
 
 ----------------------------- xml -------------------------------------
 
- require'lspconfig'.lemminx.setup{
-   on_attach = on_attach,
-   capabilities = capabilities
- }
+require 'lspconfig'.lemminx.setup {
+  on_attach = on_attach,
+  capabilities = capabilities
+}
 
+------------------------------sqls-------------------------------------
+
+require 'lspconfig'.sqls.setup {
+  on_attach = on_attach,
+  capabilities = capabilities,
+  --[[ settings = {
+    sqls = {
+      connections = {
+        {
+          driver = 'mysql',
+          dataSourceName = 'root:root@tcp(127.0.0.1:13306)/world',
+        },
+        {
+          driver = 'postgresql',
+          dataSourceName = 'host=127.0.0.1 port=15432 user=postgres pas sword=mysecretpassword1234 dbname=dvdrental sslmode=disable',
+        },
+      },
+    },
+  }, ]]
+}
+------------------------gopls-----------------------------------------
+
+require'lspconfig'.gopls.setup {
+  on_attach = on_attach,
+  capabilities = capabilities,
+}
+-------------------------ymlls-----------------------------------------
+
+require'lspconfig'.yamlls.setup{
+  on_attach = on_attach,
+  capabilities = capabilities,
+}
 ------------------------------------------------------------------------
 
 -- lspsaga --

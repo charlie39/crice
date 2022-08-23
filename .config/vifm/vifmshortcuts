@@ -151,6 +151,10 @@ map gprl :cd ~/packages/repos/dwl<CR>
 map tprl <tab>:cd ~/packages/repos/dwl<CR><tab>
 map Mprl <tab>:cd ~/packages/repos/dwl<CR><tab>:mo<CR>
 map Yprl <tab>:cd ~/packages/repos/dwl<CR><tab>:co<CR>
+map gpro :cd ~/packages/repos/OneStop.nvim<CR>
+map tpro <tab>:cd ~/packages/repos/OneStop.nvim<CR><tab>
+map Mpro <tab>:cd ~/packages/repos/OneStop.nvim<CR><tab>:mo<CR>
+map Ypro <tab>:cd ~/packages/repos/OneStop.nvim<CR><tab>:co<CR>
 map gprdb :cd ~/packages/repos/dwmblocks<CR>
 map tprdb <tab>:cd ~/packages/repos/dwmblocks<CR><tab>
 map Mprdb <tab>:cd ~/packages/repos/dwmblocks<CR><tab>:mo<CR>

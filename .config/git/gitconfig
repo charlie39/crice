@@ -51,5 +51,6 @@
 	root = rev-parse --show-toplevel
 	exec = !exec
 	root = rev-parse --show-toplevel
+	ac = "!git add -A && git commit -m "
 [remote "hub"]
 	gh-resolved = base

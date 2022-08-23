@@ -23,4 +23,4 @@ GRADLE_HOME="$HOME/.local/lib/sdkman/candidates/gradle/current/bin/gradle" java 
   -data "${1:-$HOME/.cache/jdtls_workspaces}" \
   --add-modules=ALL-SYSTEM \
   --add-opens java.base/java.util=ALL-UNNAMED \
-  --add-opens java.base/java.lang=ALL-UNNAME
+  --add-opens java.base/java.lang=ALL-UNNAMED
