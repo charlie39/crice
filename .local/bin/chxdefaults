@@ -1,0 +1,21 @@
+#!/usr/bin/sh
+# set -x
+# change xdefault color pallete randomly and refresh dwm
+
+if [ $# -gt 0 ]; then
+    xdefault=$(find ~/.config/X11/xdefaults/ -type f -iregex ".*${1}.*" | head -n1)
+    if [[ -n $xdefault ]]; then
+        xrdb $xdefault
+    else
+        printf  "didn't match any xdefault\n shuf would pick one pseudo-randomly\n"
+        xdefault=$(find ~/.config/X11/xdefaults/ -type f  | shuf -n1)
+        xrdb $xdefault
+    fi
+else
+    xdefault=$(find ~/.config/X11/xdefaults/ -type f  | shuf -n1)
+    xrdb $xdefault
+fi
+
+xdotool key Super_L+F2
+xdefault=$(basename $xdefault)
+notify-send "${xdefault/.xdefaults/}"

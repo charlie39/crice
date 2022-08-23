@@ -37,6 +37,7 @@ prc	~/packages/repos/crice
 prr	~/packages/repos/river
 prd	~/packages/repos/dwm
 prl	~/packages/repos/dwl
+pro	~/packages/repos/OneStop.nvim
 prdb ~/packages/repos/dwmblocks
 cac	~/.cache
 cacp	~/.cache/paru

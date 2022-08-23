@@ -6,9 +6,10 @@ local map = utils.map
 map('n', '<leader>s', '<cmd>w<cr><cmd>source $MYVIMRC<CR>')
 
 --tab traversal
-map('n', 'tt', ' <cmd>tabnew<CR>')
+map('n', 'tt', '<cmd>tabnew<CR>')
 map('n', 'TT', '<cmd>tabclose<CR>')
-map('n', 'GT ',' <cmd>-tabnext<CR>')
+map('n', '<TAB>','<cmd>-tabnext<CR>')
+map('n', 'q<TAB>','<cmd>tabprev<CR>')
 map('n', '<M-1>', '<cmd>1tabnext<CR>')
 map('n', '<M-2>', '<cmd>2tabnext<CR>')
 map('n', '<M-3>', '<cmd>3tabnext<CR>')

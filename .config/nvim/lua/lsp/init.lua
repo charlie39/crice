@@ -157,6 +157,12 @@ require 'lspconfig'.sqls.setup {
     },
   }, ]]
 }
+------------------------gopls-----------------------------------------
+
+require'lspconfig'.gopls.setup {
+  on_attach = on_attach,
+  capabilities = capabilities,
+}
 -------------------------ymlls-----------------------------------------
 
 require'lspconfig'.yamlls.setup{

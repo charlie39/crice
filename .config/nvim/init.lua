@@ -58,12 +58,10 @@ require('packer').startup(function(use)
   use { 'nvim-treesitter/nvim-treesitter-textobjects', opt = true }
   use { 'p00f/nvim-ts-rainbow', opt = true }
   use { 'kylechui/nvim-surround', opt = true }
-
   use { 'mfussenegger/nvim-dap' }
   use { 'rcarriga/nvim-dap-ui' }
   use { 'jbyuki/one-small-step-for-vimkind', opt = true, requires = 'mfussenegger/nvim-dap',
     config = function() require 'lsp.osv' end, ft = { '.lua' } }
-
   use { 'mhartington/formatter.nvim', opt = true }
 
   use { 'L3MON4D3/LuaSnip',
@@ -91,8 +89,9 @@ require('packer').startup(function(use)
   use { 'kevinhwang91/rnvimr', opt = true, cmd = 'RnvimrToggle' }
   use { 'kyazdani42/nvim-tree.lua', opt = true, keys = ',n',
     tag = 'nightly', config = function() require 'nvim-tree'.setup() end }
-  use { '/home/charlie/packages/repos/onestop.nvim' }
-
+  use { 'charlie39/OneStop.nvim', branch = 'main', config = require 'onestop'.setup {
+    terminal = { 'alacritty', '-e' }, layout = { width = 180, height = 48 }
+  } }
 end)
 
 
@@ -102,8 +101,8 @@ end)
 require 'onestop'.setup {
   terminal = { 'alacritty', '-e' },
   layout = {
-    width = 180,
-    height = 48,
+    width = 140,
+    height = 40,
   }
 }
 
@@ -127,6 +126,16 @@ cmd 'packadd nvim-treesitter-textobjects'
 cmd 'packadd nvim-surround'
 cmd 'packadd nvim-tree.lua'
 cmd 'packadd vim-fugitive'
+
+--merge 3 way conflict
+local opts = { noremap = true, silent = true }
+vim.keymap.set('n', '<leader>gd', '<cmd>Gdiffsplit!<cr>', opts)
+vim.keymap.set('n', '<leader>gh', '<cmd>diffget //2<cr>', opts)
+vim.keymap.set('n', '<leader>gl', '<cmd>diffget //3<cr>', opts)
+vim.keymap.set('n', '<leader>gw', '<cmd>Gwrite<cr>', opts)
+vim.keymap.set('n', '<leader>grc', '<cmd>Git rebase --continue<cr>', opts)
+vim.keymap.set('n', '<leader>grs', '<cmd>Git rebase --skip<cr>', opts)
+vim.keymap.set('n', '<leader>gra', '<cmd>Git rebase --abort<cr>', opts)
 
 local tree_ok, tree = pcall(require, 'nvim-tree')
 if tree_ok then
@@ -305,6 +314,7 @@ vim.tbl_map(function(c) cmd(string.format('autocmd  %s', c)) end, {
   'BufWritePost files,directories,aliasrc !shortcuts && source ~/.config/shortcutrc',
   'BufWritePost *Xresources,*Xdefaults !xrdb %',
   'BufWritePost *sxhkdrc !pkill -USR1 sxhkd',
+  'BufEnter *.xdefaults set filetype=xdefaults',
   'FileType xml,html set sts=2 shiftwidth=2',
 })
 
