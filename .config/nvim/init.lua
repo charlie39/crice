@@ -327,12 +327,12 @@ vim.cmd [[set bg=dark]]
 local od = require('onedark')
 od.setup {
   -- style = 'dark'
-  style = 'darker',
+  -- style = 'darker',
   -- style = 'cool'
-  -- style = 'deep'
-  -- style = 'warm'
+  style = 'deep'
+  -- style = 'warm',
   -- style = 'warmer'
-  transparent = true,
+  -- transparent = true,
 }
 od.load() ]]
 
@@ -341,9 +341,9 @@ cmd 'packadd tokyodark.nvim'
 cmd 'colorscheme tokyodark'
 
 -- aurora doesn't allow scope highlight from ts
--- cmd 'packadd aurora'
--- vim.g.aurora_italic = 1
--- cmd 'colorscheme aurora'
+--[[ cmd 'packadd aurora'
+vim.g.aurora_italic = 1
+cmd 'colorscheme aurora' ]]
 -- cmd 'colorscheme base16-atelier-savanna'
 -- cmd 'colorscheme base16-atelier-plateau'
 -- cmd 'colorscheme base16-3024'

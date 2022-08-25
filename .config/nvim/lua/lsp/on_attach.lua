@@ -76,7 +76,6 @@ M.on_attach = function(client, bufnr)
   if lspsaga_ok then
     vim.keymap.set('n', '<space>rn', require'lspsaga.rename'.lsp_rename, bufopts)
     vim.keymap.set('n', '<space>pd', require'lspsaga.definition'.preview_definition, bufopts)
-    vim.keymap.set('n', '<space>sh', require'lspsaga.signaturehelp'.signature_help, bufopts)
     vim.keymap.set('v', '<space>ra', '<cmd>Lspsaga range_code_action<cr>', bufopts)
     vim.keymap.set('n', '<space>sf', '<cmd>Lspsaga lsp_finder<cr>', bufopts)
 

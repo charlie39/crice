@@ -21,12 +21,11 @@ sleep 20
 /usr/lib/kdeconnectd &
 
 if [ $(pgrep Xorg) ];then
-    # Speed xrate up
-    # xrdb ~/.config/X11/Xresources &# Uncomment to use Xresources colors/settings on startup
     xrdb $(find ~/.config/X11/xdefaults/* | shuf -n1) &# Uncomment to use Xresources colors/settings on startup
     xcompmgr &		# xcompmgr for transparency
     unclutter &		# Remove mouse when idle
     xdotool key Super_L+F2
+    # Speed xrate up
     xset r rate 300 50
     ! [ "$(pgrep mpd-module-up)" ] && mpd-module-update  &	# Check for when to update the mpd module
     # Idle trigger
