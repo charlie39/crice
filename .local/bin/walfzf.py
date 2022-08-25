@@ -35,14 +35,12 @@ process = subprocess.Popen(cmd,shell=True, stdin=subprocess.PIPE, stdout=subproc
 arg=""
 if args.light:
     print("\033[1;32mLight Themes\033[0m:")
-    light_themes = [t.name.replace(".json","") for t in list_themes()]
-    for t in light_themes:
+    for t in [t.name.replace(".json","") for t in list_themes()]:
         process.stdin.write(t + '\n')
         arg=" -l "
 else:
     print("\033[1;32mDark Themes\033[0m:")
-    dark_themes = [t.name.replace(".json","")  for t in  list_themes(Dark=True)]
-    for t in dark_themes:
+    for t in [t.name.replace(".json","")  for t in  list_themes(Dark=True)]:
         process.stdin.write(t + '\n')
 
 isTheme = process.communicate()[0]
