@@ -25,7 +25,7 @@ HEIGHT="${2}"
 
 # Settings
 # HIGHLIGHT_SIZE_MAX=262143  # 256KiB
-1HIGHLIGHT_SIZE_MAX=1048576    #1MB
+HIGHLIGHT_SIZE_MAX=1048576    #1MB
 HIGHLIGHT_TABWIDTH=8
 HIGHLIGHT_STYLE='pablo'
 
@@ -46,11 +46,12 @@ handle_mime() {
             fi
             highlight --replace-tabs="${HIGHLIGHT_TABWIDTH}" --out-format="${highlight_format}" \
                 --style="${HIGHLIGHT_STYLE}" --force -- "${FILE_PATH}" ;;
+            # bat "${FILE_PATH}" ;;
 	application/zip) atool --list -- "${FILE_PATH}" ;;
         image/*) chafa --fill=block --symbols=block -c 256 -s 80x"${HEIGHT}" "${FILE_PATH}" || exit 1;;
         # image/*) sxiv -g 80x"${HEIGHT}" "${FILE_PATH}" || exit 1;;
-        # video/* | audio/*|application/octet-stream) mediainfo "${FILE_PATH}" || exit 1;;
-        # */pdf) pdftotext -l 10 -nopgbrk -q -- "${FILE_PATH}" - ;;
+        video/* | audio/*|application/octet-stream) mediainfo "${FILE_PATH}" || exit 1;;
+        */pdf) pdftotext -l 10 -nopgbrk -q -- "${FILE_PATH}" - ;;
         # */pdf) zathura  "${FILE_PATH}";;
         *opendocument*) odt2txt "${FILE_PATH}" ;;
     esac

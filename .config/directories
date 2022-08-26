@@ -29,7 +29,7 @@ vvmk ~/Videos/Movies/Korean
 vvmr ~/Videos/Movies/Russian
 vvt ~/Videos/Tutorials
 vvtm ~/Videos/Tutorials/MyStudio
-pr 	~/packages/repos
+pr ~/packages/repos
 pra ~/packages/repos/arm-aarch64
 prs ~/packages/repos/st
 prv	~/packages/repos/voidrice
@@ -43,10 +43,7 @@ cac	~/.cache
 cacp	~/.cache/paru
 cacpc	~/.cache/paru/clone
 P      ~/Downloads/Project
-pj      ~/Downloads/Project/Java
-pjg      ~/Downloads/Project/Java/games
-pjs	~/projects/java/spring
-pje	~/projects/java/javaee
+pjs	~/projects/spring
 sd	~/.local/share
 sds	~/.local/share/scripts
 sb	~/.local/bin

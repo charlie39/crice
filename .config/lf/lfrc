@@ -1,37 +1,25 @@
 # Luke's lf settings
 
 # Basic vars
-set shell bash
-set shellopts '-eu'
+set shell zsh
+set shellopts '-ey'
 set ifs "\n"
 set scrolloff 10
-set color256
+# set color256
 set icons
 set period 1
 set relativenumber
 set incsearch
+set incfilter
 set drawbox
 set globsearch
 set mouse
+set preview
 
+print "\033[1;32m\t\t $PWD \033[0m"
 # Vars that depend on environmental variables
 $lf -remote "send $id set previewer ${XDG_CONFIG_HOME:-$HOME/.config}/lf/scope"
 
-# cmds/functions
-# cmd open ${{
-    # case $(file --mime-type $f -b) in
-	# image/vnd.djvu|application/pdf|application/octet-stream) setsid zathura $fx >/dev/null 2>&1 & ;;
-    # 	text/troff) man ./ $f;;
-    #     text/*) $EDITOR $fx;;r
-
-	# image/x-xcf|image/svg+xml) setsid gimp $f >/dev/null 2>&1 & ;;
-	# image/*) rotdir $f | grep -i "\.\(png\|jpg\|jpeg\|gif\|webp\)\(_large\)*$" | setsid sxiv -aio 2>/dev/null | lf-select & ;;
-	# audio/*) mpv $f ;;
-	# video/*) setsid mpv $f -quiet >/dev/null 2>&1 & ;;
-	# application/pdf) setsid zathura $fx >/dev/null 2>&1 & ;;
-    #     *) for f in $fx; do setsid $OPENER $f >/dev/null 2>&1 & done;;
-    # esac
-# }}
 
 cmd open ${{
     case $(file --mime-type $f -b) in
@@ -48,22 +36,21 @@ cmd open ${{
     esac
 }}
 
- move_func() { awk -F'[[:space:]]' '{print $2}' $HOME/.config/directories | fzf ; }
-cmd mkdir $mkdir -p "$(echo $* | tr ' ' '\ ')"
+# cmd mkdir $mkdir -p "$(echo $* | tr ' ' '\ ')"
+cmd mkdir %IFS=" "; mkdir -pv -- "$*"
+
+map <c-a> push :!touch<space>
 
 cmd delete ${{
 	clear; tput cup $(($(tput lines)/3)); tput bold
 	set -f
-	printf "%s\n\t" "$fx"
-	printf "delete?[y/N]"
-	read ans
-	[ $ans = "y" ] && rm -rf $fx
+	rm -rf $fx
 }}
 
 cmd moveto ${{
 	clear; tput cup $(($(tput lines)/3)); tput bold
 	set -f
-	clear; echo "Move to where?"
+    print "\033[1;32mMove to Where? \033[0m"
 	dest="$( awk -F'[[:space:]]' '{print $2}' $HOME/.config/directories | fzf)" &&
 	eval mv -iv $fx $dest &&
 	notify-send "🚚 File(s) moved." "File(s) moved to $dest."
@@ -72,26 +59,199 @@ cmd moveto ${{
 cmd copyto ${{
 	clear; tput cup $(($(tput lines)/3)); tput bold
 	set -f
-	clear; echo "Copy to where?"
+    print "\033[1;32mCopy to Where? \033[0m"
 	dest="$( awk -F'[[:space:]]' '{print $2}' $HOME/.config/directories | fzf)" &&
 	eval cp -ivr $fx $dest &&
 	notify-send "📋 File(s) copied." "File(s) copies to $dest."
 }}
 
-cmd bulkrename ${{
-    vidir
+cmd cp ${{
+	clear; tput cup $(($(tput lines)/3)); tput bold
+	set -f
+    rsync -av --ingnore-existing --progress -- $fx ${1}
 }}
 
+# cmd mv ${{
+#     clear; tput cup $(($(tput lines/3)); tput bold
+#     set -f
+#     mv -v $fx $1
+# }}
+
+cmd async-paste !{{
+    set -- $(cat ~/.local/share/lf/files)
+    mode="$1"
+    shift
+    case "$mode" in
+        copy) rsync -av --ignore-existing --progress  -- "$@" . |\
+            stdbuf -i0 -o0 -e0 tr '\r' '\n' |\
+            while IFS= read -r line; do
+                lf -remote "send $id echo $line"
+            done
+        ;;
+        move) mv -n -- "$@" . ;;
+   esac
+   rm ~/.local/share/lf/files
+   lf -remote "send clear"
+}}
+
+cmd bulkrename ${{
+    vimv $(basename -a -- $fx)
+    lf -remote "send $id load"
+    lf -remote "send $id unselect"
+}}
+
+
+
+cmd yank-dirname $dirname -- "$f" | head -c-1 | xclip -i -selection clipboard
+cmd yank-path $printf '%s' "$fx" | xclip -i -selection clipboard
+cmd yank-basename $basename -a -- $fx | head -c-1 | xclip -i -selection clipboard
+
+cmd yank-basename-without-extension ${{
+    echo "$fx" |
+      xargs -r -d '\n' basename -a |
+      awk -e '{
+        for (i=length($0); i > 0; i--) {
+          if (substr($0, i, 1) == ".") {
+            if (i == 1) print $0
+            else print substr($0, 0, i-1)
+
+            break
+          }
+        }
+
+        if (i == 0)
+          print $0
+      }' |
+      if [ -n "$fs" ]; then cat; else tr -d '\n'; fi |
+      xclip -i -selection clipboard
+}}
+
+# doesn't work
+cmd cut-add %{{
+    files=$(lf -remote load | tail -n +2)
+    newline=$'\n'
+
+    # change to $fx to add current file when no toggled
+    # files exist.
+    if [ -n "$files" ]; then
+        new_files=$(echo "$files${newline}$fs" | sort | uniq)
+    else
+        new_files=$fs
+    fi
+    # remove empty lines from the file list, because they keep messing
+    # up the selection.
+    new_files=$(echo "$new_files" | sed --quiet -e '/^$/d' -e 'p')
+
+    lf -remote "save${newline}move${newline}${new_files}${newline}"
+    lf -remote "send $id unselect${newline}send $id sync"
+}}
+
+# doesn't work
+cmd cut-remove %{{
+    files=$(lf -remote "send $id load")
+    operation=$(echo "$files" | head -n1)
+
+    if [ "$operation" != "move" ]; then
+        lf -remote "send $id echoerr no files in cut list."
+        exit 1
+    fi
+
+    files=$(echo "$files" | tail -n +2)
+    newline=$'\n'
+
+    # change to $fx to remove current file when no toggled
+    # files exist.
+    if [ -n "$files" ]; then
+        # here we want all files in $files that aren't in $fs, making sure
+        # that none of the entries in $fs are included, even when they aren't
+        # in $files. To do this we concatenate $files and $fs (twice), printing
+        # only the uniqe lines.
+        new_files=$(echo "$files$newline$fs$newline$fs" | sort | uniq -u)
+    else
+        new_files=$files
+    fi
+    new_files=$(echo "$new_files" | sed --quiet -e '/^$/d' -e 'p')
+
+    lf -remote "save${newline}move${newline}${new_files}${newline}"
+    lf -remote "send $id unselect${newline}send $id sync"
+}}
+
+# Ranger's open_with
+cmd open-with %"$@" "$fx"
+map ` push :open-with<space>
+
+# Run command with space escaped
+cmd run-escaped %{{
+  IFS=" "
+  cmd="$1"
+  shift
+  "$cmd" "$*"
+}}
+map \\ push :run-escaped<space>
+
+# Put lf to background
+map <c-z> $ kill -STOP $PPID
+
+# move items to trash
+%export file=""
+cmd trash !{{
+    set -f
+    if gio trash --list 2>/dev/null; then
+        gio trash $fx
+    else
+        mkdir -p $XDG_DATA_HOME/Trash
+        mv -- $fx $XDG_DATA_HOME/Trash/files
+    fi
+    file=$fx
+}}
+
+cmd trash_list !{{
+	clear;tput bold
+    print "\033[1;32m\t\t Trash \033[0m"
+    if gio trash --list &>/dev/null; then
+        gio trash --list
+    else
+        ls $XDG_DATA_HOME/Trash/files
+    fi
+}}
+
+map dl trash_list
+
+cmd trash_empty ${{
+    if gio trash --list &>/dev/null; then
+        if $file ;then
+            gio trash --restore trash:///$file
+            exit 0
+        fi
+        gio trash --empty
+    else
+        rm -rf $XDG_DATA_HOME/Trash/files/*
+    fi
+}}
+
+map de trash_empty
+
+map du push $gio<space>trash<space>--restore<space>trash:///
+
+cmd cd_dir ${{
+    clear;tput bold;
+    print "\033[1;32mWhere to? \033[0m"
+    dest=$(awk -F'[[:space:]]' '{print $2}' $HOME/.config/directories | fzf)
+    lf -remote "send $id cd $dest"
+}}
+map <c-l> cd_dir
+
 # Bindings
-map <c-f> $lf -remote "send $id select '$(fzf)'"
-map J $lf -remote "send $id cd "$( awk -F'[[:space:]]' '{print $2}' $HOME/.config/directories | fzf)""
-map g top
-map D delete
-map C copyto
+map J $lf -remote "send $id select '$(fd -t d -- .  | fzf)'"
+map D trash
+map Y copyto
 map M moveto
-map <c-n> push :mkdir<space>
+map v
+map vi invert
+map vs toggle
+map vW bulkrename
+map <a-x> push :mkdir<space>
 map <c-r> reload
-# map <enter> shell
 map <enter> open
 map x $$f
 map X !$f
@@ -99,16 +259,44 @@ map o &mimeopen $f
 map O $mimeopen --ask $f
 
 map A rename # at the very end
-map c push A<c-u> # new rename
-map I push A<c-a> # at the very beginning
-map i push A<a-b><a-b><a-f> # before extention
+map R push A<c-a> # at the very beginning
+map r push A<a-b><a-b><a-f> # before extention
 map a push A<a-b> # after extention
 map b bulkrename
 map <tab> $lf -remote "send $id cmd-menu-complete"
-map R $lf -remote "send $id source ~/.config/lf/lfrc"
+map <a-r> $lf -remote "send $id source ~/.config/lf/lfrc"
 map sl :set relativenumber
 map sN :set relativenumber off
-
 map <c-e> down
 map <c-y> up
 map V push :!nvim<space>
+map <tab>
+map <tab> cmd-menu-complete
+
+# map yy push y
+# map y
+# map yd yank-dirname
+# map yb yank-basename
+# map yp yank-path
+# map ywe yank-basename-without-extension
+
+map d
+map dd cut
+map da cut-add
+map dr cut-remove
+map <delete> delete
+
+# import some shell functions
+map <a-e> $zsh -ic el
+
+map zf push :filter<space>
+# cmap <up>    up
+# cmap <down>  down
+# cmap <left>  updir
+# cmap <right> open
+
+map g? $lf -remote "send $id cd ~/.config/lf"
+map gr $lf -remote "send $id cd ~/.config/ranger"
+
+
+source ~/.config/lf/shortcuts.conf

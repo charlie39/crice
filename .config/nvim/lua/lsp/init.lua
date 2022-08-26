@@ -41,22 +41,22 @@ require('lspconfig')['sumneko_lua'].setup {
 
 ------------------------------- Bash  --------------------------------
 
-require('lspconfig')['bashls'].setup {
+--[[ require('lspconfig')['bashls'].setup {
   cmd_env = {
     GLOB_PATTERN = "*@(.sh|.inc|.bash|.zsh|.command)",
   },
   filetypes = { "sh", "zsh" },
   on_attach = on_attach,
   capabilities = capabilities
-}
+} ]]
 
 ------------------------------- Python --------------------------------
 
-require('lspconfig')['pyright'].setup {
+--[[ require('lspconfig')['pyright'].setup {
   on_attach = on_attach,
   capabilities = capabilities
 }
-
+ ]]
 
 -------------------------------- Rust ----------------------------------
 
@@ -83,7 +83,7 @@ if rust_ok then
 end
 ------------------------------- clangd ---------------------------------
 
-
+--[[
 local clangd_ok, clangd = pcall(require, 'clangd_extensions')
 if clangd_ok then
   clangd.setup {
@@ -93,28 +93,28 @@ if clangd_ok then
       on_init = on_init
     }
   }
-end
+end ]]
 
 -----------------------------ltex ------------------------------------
-
+--[[
 require('lspconfig')['ltex'].setup {
   on_attach = on_attach,
   capabilities = capabilities,
   on_init = on_init
 }
-
+ ]]
 --------------------------kotlin -----------------------------------------
-
+--[[
 require'lspconfig'.kotlin_language_server.setup {
   on_attach = on_attach,
   capabilities = capabilities,
-}
+} ]]
 
 --------------------------csharp ------------------------------------
-require('lspconfig')['omnisharp'].setup {
+--[[ require('lspconfig')['omnisharp'].setup {
   on_attach = on_attach,
   capabilities = capabilities
-}
+} ]]
 
 ------------------------------markdown -------------------------------
 --[[ require('lspconfig')['marksman'].setup {
@@ -158,17 +158,17 @@ require 'lspconfig'.sqls.setup {
   }, ]]
 }
 ------------------------gopls-----------------------------------------
-
+--[[
 require'lspconfig'.gopls.setup {
   on_attach = on_attach,
   capabilities = capabilities,
-}
+} ]]
 -------------------------ymlls-----------------------------------------
-
+--[[
 require'lspconfig'.yamlls.setup{
   on_attach = on_attach,
   capabilities = capabilities,
-}
+} ]]
 ------------------------------------------------------------------------
 
 -- lspsaga --

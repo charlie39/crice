@@ -101,7 +101,7 @@ cmp.setup({
   sorting = {
     comparators = {
       require 'cmp_tabnine'.compare,
-      require 'clangd_extensions.cmp_scores',
+      -- require 'clangd_extensions.cmp_scores',
       cmp.config.compare.offset,
       cmp.config.compare.exact,
       cmp.config.compare.recently_used,

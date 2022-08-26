@@ -119,8 +119,7 @@ require('keymap') -- --keymappings
 
 
 cmd 'packadd nvim-jdtls'
-cmd 'packadd clangd_extensions.nvim'
-cmd 'packadd rust-tools.nvim'
+-- cmd 'packadd clangd_extensions.nvim'
 -- cmd 'packadd nvim-treesitter-refactor'
 cmd 'packadd nvim-treesitter-textobjects'
 cmd 'packadd nvim-surround'

@@ -52,7 +52,7 @@ cmd() {
 #editing scripts and files {local}
 function el {
     __helper
-    opt=( ~cf/ ~pr/ ~sb/ ~vvt/ ~pjg/ ~/vimwiki/ )
+    opt=( ~cf/ ~pr/ ~sb/ ~vvt/ ~/vimwiki/ )
     md=5
     __dynamic "$@"
     find $(echo $opt) -maxdepth $md -type f -o -type l 2>/dev/null |\
