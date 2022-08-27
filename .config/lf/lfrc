@@ -15,27 +15,16 @@ set drawbox
 set globsearch
 set mouse
 set preview
+set cleaner ~/.config/lf/cleaner
+set previewer ~/.config/lf/previewer
+# set previewer ~/.config/lf/preview
+
+# $lf -remote "send $id set previewer ${XDG_CONFIG_HOME:-$HOME/.config}/lf/previewer"
 
 print "\033[1;32m\t\t $PWD \033[0m"
 # Vars that depend on environmental variables
-$lf -remote "send $id set previewer ${XDG_CONFIG_HOME:-$HOME/.config}/lf/scope"
 
-
-cmd open ${{
-    case $(file --mime-type $f -b) in
-		image/vnd.djvu|application/pdf|application/octet-stream) setsid zathura $fx >/dev/null 2>&1 & ;;
-		text/troff) man ./ $f;;
-		text/*) $EDITOR $fx;;
-		image/x-xcf|image/svg+xml) setsid gimp $f >/dev/null 2>&1 & ;;
-		# image/*) rotdir $f | grep -i "\.\(png\|jpg\|jpeg\|gif\|webp\)\(_large\)*$" | setsid sxiv -aio 2>/dev/null | lf-select & ;;
-		image/*) setsid imv  $f 2>/dev/null ;;
-		audio/*) mpv $f ;;
-		video/*) setsid mpv $f -quiet >/dev/null 2>&1 & ;;
-		application/pdf) setsid zathura $fx >/dev/null 2>&1 & ;;
-		*) for f in $fx; do setsid $OPENER $f >/dev/null 2>&1 & done;;
-    esac
-}}
-
+cmd open $~/.config/lf/opener $fx
 # cmd mkdir $mkdir -p "$(echo $* | tr ' ' '\ ')"
 cmd mkdir %IFS=" "; mkdir -pv -- "$*"
 
@@ -241,6 +230,25 @@ cmd cd_dir ${{
 }}
 map <c-l> cd_dir
 
+cmd cd_dir_global ${{
+    clear;tput bold;
+    print "\033[1;32mWhere to? \033[0m"
+    dest=$(sudo find /etc /var /usr /boot /efi -maxdepth 4 -type d 2>/dev/null | fzf)
+    if [[ -d $dest ]]; then
+        lf -remote "send $id cd $dest"
+    fi
+}}
+
+map L cd_dir_global
+map ZZ ${{ zstd -v -k --ultra -20 -T2 --rsyncable $fx }}
+map ZX ${{
+    clear;
+    case $(file --mime-type -b $fx) in
+        application/gzip) gzip -d $fx ;;
+        application/zstd) zstd -dv --rm  $fx ;;
+        application/zip) unzip -v $fx ;;
+    esac
+}}
 # Bindings
 map J $lf -remote "send $id select '$(fd -t d -- .  | fzf)'"
 map D trash
@@ -274,11 +282,12 @@ map <tab>
 map <tab> cmd-menu-complete
 
 # map yy push y
-# map y
-# map yd yank-dirname
-# map yb yank-basename
-# map yp yank-path
-# map ywe yank-basename-without-extension
+map y
+map yy copy
+map yd yank-dirname
+map yb yank-basename
+map yp yank-path
+map ywe yank-basename-without-extension
 
 map d
 map dd cut

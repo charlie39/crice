@@ -30,6 +30,9 @@ HIGHLIGHT_TABWIDTH=8
 HIGHLIGHT_STYLE='pablo'
 
 
+draw() {
+
+}
 handle_mime() {
     local mimetype="${1}"
     case "${mimetype}" in

@@ -25,8 +25,9 @@ args = parser.parse_args()
 darkOrLight="Dark"
 if args.light:
     darkOrLight="Light"
-
-cmd="rofi -dmenu -i -p '" + darkOrLight + " Themes' -theme launchers/text/style_4.rasi"
+# theme="launchers/colorful/style_9.rasi"
+theme="launchers/colorful/style_3.rasi"
+cmd="rofi -dmenu -i -p '" + darkOrLight + " Themes' -theme " + theme
 
 if args.fzf:
     cmd="fzf"

@@ -4,8 +4,8 @@ set -x
 wtr_theme="launchers/text/style_1.rasi"
 # wtr_theme="launchers/colorful/style_5.rasi"
 # wtr_theme="launchers/colorful/style_10.rasi"
-# ROFI=(rofi -i -dmenu -theme $wtr_theme)
- ROFI=(rofi -i -dmenu )
+ROFI=(rofi -i -dmenu -theme $wtr_theme)
+ # ROFI=(rofi -i -dmenu )
 
 __dynamic() {
     a=( "${@}" )
@@ -25,7 +25,7 @@ opt=(~/Videos/ ~/Music/) md=6
 __dynamic "$@"
 
 find -L $(echo $opt)  -maxdepth $md -type f | grep -F "$(find -L $(echo $opt) -maxdepth $md -type f|\
-grep -E ".*\.[mawo].{2,3}" |cut -d'/' -f5- | sed -E 's/\..{2,5}$//' | ${ROFI[@]} $wtr_theme |\
+grep -E ".*\.[mawo].{2,3}" |cut -d'/' -f5- | sed -E 's/\..{2,5}$//' | ${ROFI[@]}  |\
 sed 's/$/./' )"| awk  -F '.' -v pid=$$ -v ppid=$PPID 'FNR==2{system("kill -9 " pid)}FNR==1&&NF>1{print}'|\
 xargs -rd $'\n'  sh -c '"$VPLAYER" "$@";echo \""$@"\"' ''
 
