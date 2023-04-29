@@ -6,7 +6,7 @@
 set -x
 getmount() { \
 	[ -z "$chosen" ] && exit 1
-    mp="$(find $1 -not \( -path *config -prune \) 2>/dev/null | $DMENU -i -p "Type in mount point.")"
+    mp="$(find $1 -not \( -path *config -prune \) -not \( -path *cache -prune \) 2>/dev/null | $DMENU -i -p "Type in or select mount point.")"
 	[ "$mp" = "" ] && exit 1
 	if [ ! -d "$mp" ]; then
 		mkdiryn=$(printf "No\\nYes" | $DMENU -i -p "$mp does not exist. Create it?")
@@ -25,37 +25,52 @@ mountusb() { \
 		*) sudo -A mount "$chosen" "$mp"; user="$(whoami)"; ug="$(groups | awk '{print $1}')"; sudo -A chown "$user":"$ug" "$mp";;
 	esac
 	notify-send "💻 USB mounting" "$chosen mounted to $mp."
-	}
+}
 
 mountandroid() { \
-	chosen=$(echo "$anddrives" | $DMENU -i -p "Which Android device?" | cut -d : -f 1)
-	getmount "$HOME -maxdepth 3 -type d"
+    chosen=$(echo "$anddrives" | $DMENU -i -p "Which Android device?" | cut -d : -f 1)
+    getmount "$HOME -maxdepth 3 -type d"
     simple-mtpfs --device "$chosen" -o nonempty,kernel_cache,uid=1000,gid=1000,umask=002 "$mp"
-	echo "OK" | $DMENU -i -p "Tap Allow on your phone if it asks for permission and then press enter"
-	simple-mtpfs --device "$chosen" -o nonempty,kernel_cache,uid=1000,gid=1000,umask=002 "$mp"
-	notify-send "🤖 Android Mounting" "Android device mounted to $mp."
-	}
+    echo "OK" | $DMENU -i -p "Tap Allow or choose the connection type on your phone and then press enter"
+    simple-mtpfs --device "$chosen" -o nonempty,kernel_cache,uid=1000,gid=1000,umask=002 "$mp"
+    if grep simple-mtpfs /etc/mtab ; then
+        notify-send "🤖 Android Mounting" "Android device mounted to $mp."
+    else
+        sleep 3
+        simple-mtpfs --device "$chosen" -o nonempty,kernel_cache,uid=1000,gid=1000,umask=002 "$mp"
+        if grep simple-mtpfs /etc/mtab ; then
+            notify-send "🤖 Android Mounting" "Android device mounted to $mp."
+        else
+            dunstify "Could not mount android" "Try unlugging and replugging the connection and choosing a suitable connection type (e.g. File Transfer)"
+        fi
+    fi
+}
+
+android_gui() { \
+	printf "Yes" | $DMENU -i -p "Is your Phone Unlocked?"
+	android-file-transfer
+	[ $? -ne 0 ] && android-file-transfer
+}
 
 asktype() { \
-	case $(printf "USB\\nAndroid" | $DMENU -i -p "Mount a USB drive or Android device?") in
+	case $(printf "USB\\nAndroid-CLI\\nAndroid-GUI" | $DMENU -i -p "Mount Device Type?") in
+		Android-CLI) mountandroid ;;
+		Android-GUI) android_gui ;;
 		USB) mountusb ;;
-		Android) mountandroid ;;
 	esac
-	}
+}
 
 anddrives=$(simple-mtpfs -l 2>/dev/null)
 usbdrives="$(lsblk -rpo "name,type,size,mountpoint" | awk '$2=="part"&&$4==""{printf "%s (%s)\n",$1,$3}')"
 
 if [ -z "$usbdrives" ]; then
-	[ -z "$anddrives" ] && echo "No USB drive or Android device detected" && exit
-	echo "Android device(s) detected."
-	mountandroid
+	[ -z "$anddrives" ] && dunstify "No device attached for mount" "" && exit
+	case $(printf "Android-CLI\\nAndroid-GUI" | $DMENU -i -p "Mount Device Type?") in
+		Android-CLI) mountandroid ;;
+		Android-GUI) android_gui ;;
+	esac
+elif [ -z "$anddrives" ]; then
+	mountusb
 else
-	if [ -z "$anddrives" ]; then
-		echo "USB drive(s) detected."
-		mountusb
-	else
-		echo "Mountable USB drive(s) and Android device(s) detected."
-		asktype
-	fi
+	asktype
 fi

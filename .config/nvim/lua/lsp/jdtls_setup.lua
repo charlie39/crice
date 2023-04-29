@@ -116,10 +116,6 @@ function M.setup()
           },
           runtimes = {
             {
-              name = "JavaSE-1.8",
-              path = "/usr/lib/jvm/java-18-jdk/",
-            },
-            {
               name = "JavaSE-11",
               path = "/usr/lib/jvm/11.0.6.j9-adpt/",
             },
@@ -127,8 +123,8 @@ function M.setup()
               path = vim.env.JAVA_HOME,
             },
             {
-              name = "JavaSE-18",
-              path = "/usr/lib/jvm/java-18-jdk/",
+              name = "JavaSE-19",
+              path = "/usr/lib/jvm/java-19-jdk/",
             }
           }
         };
@@ -165,7 +161,7 @@ function M.setup()
   }
 
   config.on_attach = require 'lsp.on_attach'.on_attach
-  config.capabilities = require('cmp_nvim_lsp').update_capabilities(vim.lsp.protocol.make_client_capabilities())
+  config.capabilities = require('cmp_nvim_lsp').default_capabilities(vim.lsp.protocol.make_client_capabilities())
   config.on_init = function(client, _)
     client.notify('workspace/didChangeConfiguration', { settings = client.config.settings })
   end

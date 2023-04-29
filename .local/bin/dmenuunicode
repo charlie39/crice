@@ -1,7 +1,7 @@
 #!/bin/sh
 set -x
 # The famous "get a menu of emojis to copy" script.
-ROFI=( rofi -dmenu -i -theme launchers/text/style_4.rasi )
+ROFI=( rofi -dmenu -p "Symbols" -i -theme launchers/text/style_4.rasi )
 # Must have xclip (or wl-copy in Wayland) installed to even show menu.
 xclip -h 2>/dev/null || wl-copy -h 2>/dev/null || exit 1
 

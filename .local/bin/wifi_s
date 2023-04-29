@@ -1,18 +1,14 @@
 #!/usr/bin/sh
-
 # Author: charlie39( iamkg050392 at gmail dot com)
 # Github : https://github.com/charlie39
-
+# set -x
 # I release this script in the public domain
 # you can do whatever you like with it
-
-
 # your wifi interface:
 Interface="wlo1"
 
 #y our DHCP client:e.g - dhcpcd,dhclient
 dhcpclient="dhcpcd"
-
 
 # path to your wpa_supplicant.conf
 WPA_SUPPLICANTCONF=$HOME/.config/wpa/wpa_supplicant.conf
@@ -39,19 +35,6 @@ check $dhcpclient
 check ip
 type notify-send >/dev/null && notify=1
 
-OPT=$(getopt -o :hntv --long :help,new,term,verbose -a -n 'wifi_s' -- "$@")
-eval set -- "$OPT"
-unset OPT
-
-while true;do
-    case $1 in
-        -h|--help) h=1 $1 ;break ;;
-        -n|--new) new_con=1 ;break ;;
-        -t|--term) term=1 ; break ;;
-        -v|--verbose) set -x;shift ;;
-        *) break;;
-    esac
-done
 
 help() {
 
@@ -76,13 +59,14 @@ exit 0
 terminate() {
     sudo pkill -KILL $dhcpclient
     sudo wpa_cli terminate $Interface && (( notify )) && notify-send -u low -i $WIFI_ICON "" "$Interface is disconnected"
-    exit
+    [ $(pgrep mpd-mpris) ] && pkill mpd-mpris && echo "killed mpd-mpris"
+    pgrep kdeconnectd && pkill kdeconnectd && echo "killed kdeconnectd"
 }
 
 #generate asterisk for passphrase prompt
 __asterisk_prompt_for_passphrase() {
     unset passphrase
-    prompt="Enter Passphrase: "
+    prompt="Passphrase: "
     while IFS= read -r -p "$prompt" -s -n 1 char
     do
         #Enter - accept passphrase
@@ -104,26 +88,26 @@ __asterisk_prompt_for_passphrase() {
 main() {
 
 #4. generate wpa_supplicant.conf with SSID and passphrase if it doesn't already exist:
-if ! [ -s "$WPA_SUPPLICANTCONF" ]; then
+    if ! [ -s "$WPA_SUPPLICANTCONF" ]; then
 
-    read -r -p "It appears no Network is configured. Would you like to configure one(y/N)? " YN
-    [[ $YN =~ [nN] || -z $YN ]] &&  exit 0;
-    if [[ $YN =~ [yY] ]]; then
-        read -r -p "Would you like to control wpa_supplicant with its frontend tool wpa_cli?(y/N) " YesNo
-        [[ $YesNo =~ [Yy] ]] && echo -e "ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=$USER" >  "$WPA_SUPPLICANTCONF"
-        read -r -p "Entere the SSID: " SSID
-        __asterisk_prompt_for_passphrase
-        wpa_passphrase "$SSID" "$passphrase" >>  "$WPA_SUPPLICANTCONF"
-        chmod 600 "$WPA_SUPPLICANTCONF"
-        (( $(pgrep  wpa_supplicant) )) && terminate
-        unset YN
-        main
-    else
-        echo "Wrong choice" >&2
-        echo "try again" >&2
-        exit 1
+        read -r -p "It appears no Network is configured. Would you like to configure one(y/N)? " YN
+        [[ $YN =~ [nN] || -z $YN ]] &&  exit 0;
+        if [[ $YN =~ [yY] ]]; then
+            read -r -p "Would you like to control wpa_supplicant with its frontend tool wpa_cli?(y/N) " YesNo
+            [[ $YesNo =~ [Yy] ]] && echo -e "ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=$USER" >  "$WPA_SUPPLICANTCONF"
+            read -r -p "SSID: " SSID
+            __asterisk_prompt_for_passphrase
+            wpa_passphrase "$SSID" "$passphrase" >>  "$WPA_SUPPLICANTCONF"
+            chmod 600 "$WPA_SUPPLICANTCONF"
+            (( $(pgrep  wpa_supplicant) )) && terminate
+            unset YN
+            main
+        else
+            echo "Wrong choice" >&2
+            echo "try again" >&2
+            exit 1
+        fi
     fi
-fi
     #you may require to mention a driver wrapper with -D nl80211,wext. Refer wpa_supplicant(8)
     [ $( pgrep wpa_supplicant ) ] || { sudo wpa_supplicant -c "$WPA_SUPPLICANTCONF" -i"$Interface" -B && exit_code=$? ; }
     if [[ $exit_code -eq 0 ]];then
@@ -156,11 +140,13 @@ fi
     (( notify )) && notify-send -u low -i $WIFI_ICON " " "Connection established"
     unset dhcpclient Interface
 
+    echo "pinging google ..."
     if ping google.com -c 1 &>/dev/null; then
         (( notify )) && notify-send -u low -i $WIFI_ICON "Network is up" "enjoy 🙂"
         return 0
+    else
+        (( notify )) && notify-send -u low -i $WIFI_ICON "😢" "Can't ping google"
     fi
-    (( notify )) && notify-send -u low -i $WIFI_ICON "😢" "Can't ping google"
 }
 
 #Generate new network/password by passing n
@@ -171,16 +157,62 @@ new_connection() {
     [ -s $WPA_SUPPLICANTCONF ] && /bin/mv -f $WPA_SUPPLICANTCONF "${WPA_SUPPLICANTCONF}.bak"
     [[ $YesNo =~ [Yy] ]] && echo -e "ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=$USER" >  "$WPA_SUPPLICANTCONF"
     [[ $SSID ]] && wpa_passphrase "$SSID" "$passphrase" >> "$WPA_SUPPLICANTCONF"
-    (( $(pgrep  wpa_supplicant) )) && terminate
+    (( $(pgrep  wpa_supplicant) )) && terminate && sleep 3
     unset YesNo
     main
-
 }
 
-# shellcheck disable=SC3006
-(( term )) && terminate && return
-# shellcheck disable=SC3006
-(( new_con ))  && new_connection && return
-main
 
+kdeconnect() {
+    gateway=( $(ip route | awk '!/linkdown/{ print $3}') )
+    if ! [[ "${gateway[1]}" =~ [0-9] ]]; then
+        main
+    fi
+    /usr/lib/kdeconnectd &> /dev/null &
+    sleep 2
+    kdeconnect-cli -l &> /dev/null
+    dunstify "launched kdeconnect" ""
+}
+
+mpd_mpris() {
+    gateway=( $(ip route | awk '!/linkdown/{ print $3}') )
+    if ! [[ "${gateway[1]}" =~ [0-9] ]]; then
+        main
+    fi
+    pgrep mpd && nohup mpd-mpris &
+    disown
+    dunstify "launched mpd-mpris" ""
+}
+
+#This function is to handle the script being called from a keybind
+dmenu_prompt() {
+	choice=$(printf "Default\\nNew-Connection\\nTerminate\\nKDEConnect\\nMPD-Mpris\\nKDEnMPD" | dmenu -i -p "Wifi Options:")
+	case $choice in
+		Default) main;break;;
+		New-Connection) new_connection;break;;
+		Terminate) terminate;break;;
+		KDEConnect) kdeconnect;break;;
+		MPD-Mpris) mpd_mpris;break;;
+		KDEnMPD) kdeconnect && mpd_mpris;break;;
+		*) break;;
+	esac
+}
+
+OPT=$(getopt -o :hntvkmcd --long :help,new,term,verbose,kde,mpd,con,dmenu -a -n 'wifi_s' -- "$@")
+eval set -- "$OPT"
+unset OPT
+
+while true;do
+    case $1 in
+        -h|--help) help ;shift;;
+        -n|--new) new_connection ; shift ;;
+        -t|--term) terminate; shift;;
+        -v|--verbose) set -x ;shift;;
+        -k|--kde) kdeconnect ;shift;;
+        -m|--mpd) mpd_mpris;shift;;
+        -c|--con) main;shift;;
+	-d|--dmenu) dmenu_prompt ;shift;break;;
+        --) shift; break;;
+    esac
+done
 

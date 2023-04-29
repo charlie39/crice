@@ -1,7 +1,7 @@
 -- ========================== |  lspconfig  | ==================================
 
 -- Setup cmp
-local capabilities = require('cmp_nvim_lsp').update_capabilities(vim.lsp.protocol.make_client_capabilities())
+local capabilities = require('cmp_nvim_lsp').default_capabilities(vim.lsp.protocol.make_client_capabilities())
 -- attach the on_attach function
 local on_attach = require 'lsp.on_attach'.on_attach
 
@@ -9,7 +9,7 @@ local on_init = function(client, _)
   client.notify('workspace/didChangeConfiguration', { settings = client.config.settings })
 end
 ------------------------- lua ---------------------------------
-require('lspconfig')['sumneko_lua'].setup {
+require('lspconfig')['lua_ls'].setup {
   on_attach = on_attach,
   settings = {
     Lua = {
@@ -83,7 +83,6 @@ if rust_ok then
 end
 ------------------------------- clangd ---------------------------------
 
---[[
 local clangd_ok, clangd = pcall(require, 'clangd_extensions')
 if clangd_ok then
   clangd.setup {
@@ -93,7 +92,7 @@ if clangd_ok then
       on_init = on_init
     }
   }
-end ]]
+end
 
 -----------------------------ltex ------------------------------------
 --[[
@@ -139,11 +138,11 @@ require 'lspconfig'.lemminx.setup {
 
 ------------------------------sqls-------------------------------------
 
-require 'lspconfig'.sqls.setup {
+require 'lspconfig'.sqlls.setup {
   on_attach = on_attach,
   capabilities = capabilities,
   --[[ settings = {
-    sqls = {
+    sqlls = {
       connections = {
         {
           driver = 'mysql',
@@ -173,4 +172,7 @@ require'lspconfig'.yamlls.setup{
 
 -- lspsaga --
 -- this should at the bottom of all language servers
-require('lsp.lspsaga').setup()
+local ok_saga, lspsaga = pcall(require,'lspsaga')
+if ok_saga then
+  lspsaga.setup({})
+end

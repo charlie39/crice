@@ -10,7 +10,7 @@ function M.ssetup()
     --[[ vim.keymap.set('n','<leader>do','<cmd>lua require("dapui").open()<cr>',opts )
     vim.keymap.set('n','<leader>dc','<cmd>lua require("dapui").close()<cr>',opts ) ]]
 
-    vim.keymap.set('n', '<leader>dl', '<cmd>lua require("dapui").setup()<cr>', opts)
+    -- vim.keymap.set('n', '<leader>dl', '<cmd>lua require("dapui").setup()<cr>', opts)
     vim.keymap.set('n', '<leader>dt', '<cmd>lua require("dapui").toggle()<cr>', opts)
 
 

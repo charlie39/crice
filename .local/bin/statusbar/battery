@@ -31,8 +31,8 @@ if [ "$capacity" -le 25 -a "$status" = "🔋" ]; then
 fi
 
 # Display on stdout
-printf "%s%s%s%%\n" "$status" "$warn" "$capacity"
-
+printf "^c#FF0000^%s%s%s%%^d^\n" "$status" "$warn" "$capacity"
+# printf "^r0,7,2,4^^r2,4,22,10^^c#000000^^r3,5,20,8^^c#ffffff^^r10,5,13,8^^d^^f24^"
 unset warn
 
 cpufreq() { echo $1 | sudo tee /sys/devices/system/cpu/cpufreq/policy?/scaling_governor &>/dev/null; echo "$(date) --- Set to $1"  ; }

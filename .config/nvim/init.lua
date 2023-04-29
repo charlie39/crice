@@ -7,7 +7,9 @@ vim.wo.rnu = true
 local cmd, fn, g, exe = vim.cmd, vim.fn, vim.g, vim.api.nvim_command
 local opt = require('utils').opt
 -- set guifont for gui vim ( neovide )
-opt('o', 'guifont', 'FiraCode Nerd Font:h10')
+opt('o', 'guifont', 'JetBrainsMono_Nerd_Font:h8')
+
+-- opt('o', 'guifont', 'FiraCode Nerd Font:h10')
 local install_path = fn.stdpath('data') .. '/site/pack/packer/start/packer.nvim'
 if fn.empty(fn.glob(install_path)) > 0 then
   fn.execute({ '!git', 'clone', '--depth 1', 'https://github.com/wbthomason/packer.nvim', install_path })
@@ -18,6 +20,7 @@ end
 -- if you want to use other plugin manager, comment it out
 require('packer').startup(function(use)
   use { 'wbthomason/packer.nvim' }
+  use { 'uga-rosa/ccc.nvim' }
   use { 'ellisonleao/glow.nvim', branch = 'main' }
   use { 'junegunn/fzf.vim', disable = true, opt = true,
     config = function() require('config.fzf') end,
@@ -31,7 +34,7 @@ require('packer').startup(function(use)
   use { 'glepnir/lspsaga.nvim', branch = "main" }
   use { 'onsails/lspkind.nvim' }
   use { 'folke/trouble.nvim', opt = true }
-  use { 'mfussenegger/nvim-jdtls', ft = { 'java' } }
+  -- use { 'mfussenegger/nvim-jdtls', ft = { 'java' } }
   use { 'p00f/clangd_extensions.nvim', opt = true }
   use { 'simrat39/rust-tools.nvim', opt = true }
 
@@ -59,7 +62,8 @@ require('packer').startup(function(use)
   use { 'p00f/nvim-ts-rainbow', opt = true }
   use { 'kylechui/nvim-surround', opt = true }
   use { 'mfussenegger/nvim-dap' }
-  use { 'rcarriga/nvim-dap-ui' }
+  use { 'rcarriga/nvim-dap-ui', requires = { "mfussengegger/nvim-dap" } }
+  use { 'folke/neodev.nvim' }
   use { 'jbyuki/one-small-step-for-vimkind', opt = true, requires = 'mfussenegger/nvim-dap',
     config = function() require 'lsp.osv' end, ft = { '.lua' } }
   use { 'mhartington/formatter.nvim', opt = true }
@@ -94,7 +98,6 @@ require('packer').startup(function(use)
   } }
 end)
 
-
 --================ BASICS ===================
 
 -- require'onestop'.setup({ terminal = { 'kitty', '-e' }})
@@ -115,11 +118,15 @@ require('keymap') -- --keymappings
 
 ------plugin configs
 
+require'neodev'.setup({
+  library = { plugins = { "nvim-dap-ui" }, types = true }
+})
+
 -- require 'config.luasnip'
 
 
 cmd 'packadd nvim-jdtls'
--- cmd 'packadd clangd_extensions.nvim'
+cmd 'packadd clangd_extensions.nvim'
 -- cmd 'packadd nvim-treesitter-refactor'
 cmd 'packadd nvim-treesitter-textobjects'
 cmd 'packadd nvim-surround'
@@ -315,6 +322,7 @@ vim.tbl_map(function(c) cmd(string.format('autocmd  %s', c)) end, {
   'BufWritePost *sxhkdrc !pkill -USR1 sxhkd',
   'BufEnter *.xdefaults set filetype=xdefaults',
   'FileType xml,html set sts=2 shiftwidth=2',
+  -- 'FileType c,cpp,h packadd clangd_extensions.nvim',
 })
 
 ------------------ Colorchemes -----------------------------

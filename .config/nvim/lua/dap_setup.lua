@@ -3,6 +3,8 @@ function M.setup()
   local dap = require('dap')
   vim.fn.sign_define('DapBreakpoint', { text = '🛑', texthl = '', linehl = '', numhl = '' })
 
+  -- dap-ui & config
+  require('dap-ui_setup').ssetup()
   ----------------------------  Adapters -----------------------------------
 
   -- codelldb

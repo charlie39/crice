@@ -8,11 +8,8 @@ M.on_attach = function(client, bufnr)
   --dap configuration, basically keymappings
   require('dap_setup').setup()
 
-  -- dap-ui
-  require('dap-ui_setup').ssetup()
 
   vim.api.nvim_buf_set_option(bufnr, 'omnifunc', 'v:lua.vim.lsp.omnifunc')
-
 
   -- Mappings.on_a
   vim.keymap.set('n', 'gD', vim.lsp.buf.declaration, bufopts)
@@ -27,7 +24,7 @@ M.on_attach = function(client, bufnr)
   end, bufopts)
   vim.keymap.set('n', '<space>D', vim.lsp.buf.type_definition, bufopts)
   vim.keymap.set('n', '<space>rn', vim.lsp.buf.rename, bufopts)
-  vim.keymap.set('n', '<space>ca', vim.lsp.buf.code_action, bufopts)
+  -- vim.keymap.set('n', '<space>ca', vim.lsp.buf.code_action, bufopts)
   vim.keymap.set('n', 'gr', vim.lsp.buf.references, bufopts)
 
   vim.keymap.set('n', '<space>e', vim.diagnostic.open_float, opts)
@@ -35,7 +32,7 @@ M.on_attach = function(client, bufnr)
   vim.keymap.set('n', ']d', vim.diagnostic.goto_next, opts)
   vim.keymap.set('n', '<space>q', vim.diagnostic.setloclist, opts)
 
-  if client.name == "jdt.ls" then
+  if client.name == "jdtls" then
     -- extended features of jdtls
     vim.keymap.set('n', '<space>o', "<cmd>lua require('jdtls').organize_imports()<cr>", bufopts)
     vim.keymap.set('n', '<space>cv', "<cmd>lua require('jdtls').extract_variable(true)<cr>", bufopts)
@@ -44,19 +41,23 @@ M.on_attach = function(client, bufnr)
     vim.keymap.set('v', '<space>cc', "<esc><cmd>lua require('jdtls').extract_constant(true)<cr>", bufopts)
     vim.keymap.set('v', '<space>cm', "<esc><cmd>require('jdtls').extract_method(true)<cr>", bufopts)
 
+    --discover main classes
+    vim.keymap.set('v', '<space>mc', "<esc><cmd>lua require('jdtls').extract_constant(true)<cr>", bufopts)
+
     -- If using nvim-dap
     vim.keymap.set('n', '<space>tc', "<cmd>lua require('jdtls').test_class()<cr>", bufopts)
-    vim.keymap.set('n', '<space>tm', "<cmd>lua require('jdtls').test_nearest_method(true)<cr>", bufopts)
+    vim.keymap.set('n', '<space>tm', function() require('jdtls.dap').setup_dap_main_class_configs() end, bufopts)
 
-    require('jdtls').setup_dap()
-    -- require('jdtls').setup_dap({ hotcodereplace = 'auto' })
+    -- require('jdtls').setup_dap()
+    require('jdtls').setup_dap({ hotcodereplace = 'auto' })
     -- require'jdtsl.dap'.setup_dap_main_class_configs()
     -- add the preconfigured Jdt* commands
-    require('jdtls.setup').add_commands()
 
+  require('jdtls.setup').add_commands()
   end
+
   -- launch one-small-step-for-vimkind if the client is lua
-  if client.name == "sumneko_lua" then
+  if client.name == "lua_ls" then
     require('lsp.osv').setup()
   end
 
@@ -74,37 +75,51 @@ M.on_attach = function(client, bufnr)
   --- lspsaga
   local lspsaga_ok, _ = pcall(require, 'lspsaga')
   if lspsaga_ok then
-    vim.keymap.set('n', '<space>rn', require'lspsaga.rename'.lsp_rename, bufopts)
-    vim.keymap.set('n', '<space>pd', require'lspsaga.definition'.preview_definition, bufopts)
-    vim.keymap.set('v', '<space>ra', '<cmd>Lspsaga range_code_action<cr>', bufopts)
+    vim.keymap.set('n', '<space>rn', '<cmd>Lspsaga rename<cr>', bufopts)
+    vim.keymap.set('n', '<space>rnn', '<cmd>Lspsaga rename ++project<cr>', bufopts)
+    vim.keymap.set('n', '<space>pd', '<cmd>Lspsaga peek_definition<cr>', bufopts)
+    vim.keymap.set('n', '<space>pt', '<cmd>Lspsaga peek_type_definition<cr>', bufopts)
+    vim.keymap.set('n', '<space>gD', '<cmd>Lspsaga goto_type_definition<cr>', bufopts)
     vim.keymap.set('n', '<space>sf', '<cmd>Lspsaga lsp_finder<cr>', bufopts)
+    vim.keymap.set({"n","v"}, "<space>ca", "<cmd>Lspsaga code_action<cr>",bufopts)
+    -- diagnostics
 
-    vim.keymap.set('n', '<space>cD', require'lspsaga.diagnostic'.show_line_diagnostics,
-      { silent = true, noremap = true })
-
+    vim.keymap.set('n', '<space>ld', '<cmd>Lspsaga show_line_diagnostics<cr>',bufopts)
+    vim.keymap.set('n', '<space>cd', '<cmd>Lspsaga show_cursor_diagnostics<cr>',bufopts)
+    vim.keymap.set('n', '<space>bd', '<cmd>Lspsaga show_buf_diagnostics<cr>',bufopts)
     -- jump diagnostic
-    vim.keymap.set("n", "[e", require'lspsaga.diagnostic'.goto_prev, bufopts)
-    vim.keymap.set("n", "]e", require'lspsaga.diagnostic'.goto_next, bufopts)
+    vim.keymap.set("n", "<cmd>Lspsaga diagnostic_jump_prev<cr>", "[e",bufopts)
+    vim.keymap.set("n", "]e", "<cmd>Lspsaga diagnostic_jump_next<cr>",bufopts)
     -- or jump to error
     vim.keymap.set("n", "[E", function()
-      require("lspsaga.diagnostic").goto_prev({ severity = vim.diagnostic.severity.ERROR })
+      require("lspsaga.diagnostic"):goto_prev({ severity = vim.diagnostic.severity.ERROR })
     end, { silent = true, noremap = true })
     vim.keymap.set("n", "]E", function()
-      require("lspsaga.diagnostic").goto_next({ severity = vim.diagnostic.severity.ERROR })
+      require("lspsaga.diagnostic"):goto_next({ severity = vim.diagnostic.severity.ERROR })
     end, { silent = true, noremap = true })
 
-    vim.keymap.set("n", "<A-t>", "<cmd>Lspsaga open_floaterm<CR>", bufopts)
-    vim.keymap.set("t", "<A-t>", "<C-\\><C-n><cmd>Lspsaga close_floaterm<CR>", bufopts)
-  end
+    -- toggle outline
+    vim.keymap.set("n","<space>0", "<cmd>Lspsaga outline<cr>",bufopts)
+    -- toggle float window
+    vim.keymap.set({"n","t"}, "<A-t>", "<cmd>Lspsaga term_toggle<CR>", bufopts)
+    -- hover doc
+     vim.keymap.set("n","K","<cmd>Lspsaga hover_doc<cr>",bufopts)
+     -- keep hover window top right corner
+     -- <C-w>w to jump to hover window
+     vim.keymap.set("n","<space>K","<cmd>Lspsaga hover_doc ++keep<cr>",bufopts)
 
+     -- call hierarchy
+     vim.keymap.set("n","<space>ci","<cmd>Lspsaga incoming_calls<cr>",bufopts)
+     vim.keymap.set("n","<space>co","<cmd>Lspsaga outgoing_calls<cr>",bufopts)
+  end
 
   -- Set some keybinds conditional on server capabilities
   if client.server_capabilities.documentFormattingProvider then
     vim.keymap.set('n', '<space>f', vim.lsp.buf.format, bufopts)
   end
-  if client.server_capabilities.documentRangeFormattingProvider then
-    vim.keymap.set('v', '<space>f', vim.lsp.buf.range_formatting, bufopts)
-  end
+  -- if client.server_capabilities.documentRangeFormattingProvider then
+    -- vim.keymap.set('v', '<space>f', vim.lsp.buf.range_formatting, bufopts)
+  -- end
 
   -- Set autocommands conditional on server_capabilities
   if client.server_capabilities.documentHighlightProvider then

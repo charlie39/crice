@@ -18,7 +18,6 @@ sleep 20
 ! [ "$(pidof sway)" ] && setbg &          # set wallpaper both for X and wayland except sway cuz it has its own wallpaper setting
 ! [ "$(pidof mpd)" ] && mpd &          # music player daemon-you might prefer it as a service though
 ! [ "$(pidof dwl)" ] && pgrep dunst && { pkill dunst && dunst & } || dunst >/dev/null &         # dunst for notifications
-/usr/lib/kdeconnectd &
 
 if [ $(pgrep Xorg) ];then
     xrdb $(find ~/.config/X11/xdefaults/* | shuf -n1) &# Uncomment to use Xresources colors/settings on startup
@@ -53,6 +52,4 @@ else
     foot --server &>/dev/null &
     ! [ "$(pgrep clipmangr)" ] && clipmangr daemon &
 fi
-
-
 

@@ -1,76 +1,39 @@
+
+-- not in use
 local M = {}
 
 M.setup = function()
 
   local lspsaga_ok, lspsaga_ = pcall(require, 'lspsaga')
   if lspsaga_ok then
-    lspsaga_.init_lsp_saga {
-      symbol_in_winbar = {
-        in_custom = true,
-      },
-      diagnostic_header = { " ", " ", " ", "ﴞ " },
-      -- diagnostic_header = { "😡", "😥", "😤", "😐" },
-      finder_icons = {
-        def = '  ',
-        ref = '諭 ',
-        link = '  ',
-      },
-      --[[ code_action_lightbulb = {
-        enable = false,
-      }, ]]
-    }
+    lspsaga_.setup ({})
+    --[[ lspsaga_.setup {
+      preview = { lines_above = 0,
+      lines_below = 10,
+    },
+    scroll_preview = {
+      scroll_down = "<C-f>",
+      scroll_up = "<C-b>",
+    },
+    request_timeout = 2000,
+
+  finder = {
+    --percentage
+    max_height = 0.5,
+    force_max_height = false,
+    keys = {
+      jump_to = 'p',
+      edit = { 'o', '<CR>' },
+      vsplit = 's',
+      split = 'i',
+      tabe = 't',
+      tabnew = 'r',
+      quit = { 'q', '<ESC>' },
+      close_in_preview = '<ESC>'
+    },
+  },
+    } ]]
   end
-  local function get_file_name(include_path)
-    local file_name = require('lspsaga.symbolwinbar').get_file_name()
-    if vim.fn.bufname '%' == '' then return '' end
-    if include_path == false then return file_name end
-    local sep = vim.loop.os_uname().sysname == 'Windows' and '\\' or '/'
-    local path_list = vim.split(string.gsub(vim.fn.expand '%:~:.:h', '%%', ''), sep)
-    local file_path = ''
-    for _, cur in ipairs(path_list) do
-      file_path = (cur == '.' or cur == '~') and '' or
-          file_path .. cur .. ' ' .. '%#LspSagaWinbarSep#>%*' .. ' %*'
-    end
-    return file_path .. file_name
-  end
-
-  local function config_winbar()
-    local exclude = {
-      ['teminal'] = true,
-      ['terminal'] = true,
-      ['rnvimr'] = true,
-      ['prompt'] = true,
-      ['toggleterm'] = true,
-      ['NvimTree'] = true,
-      ['packer'] = true,
-      ['help'] = true,
-    }
-    -- Ignore float windows and exclude filetype
-    if vim.api.nvim_win_get_config(0).zindex or exclude[vim.bo.filetype] then
-      vim.wo.winbar = ''
-    else
-      local ok, lspsaga = pcall(require, 'lspsaga.symbolwinbar')
-      local sym
-      if ok then sym = lspsaga.get_symbol_node() end
-      local win_val = ''
-      win_val = get_file_name(false) -- set to true to include path
-      if sym ~= nil then win_val = win_val .. sym end
-      vim.wo.winbar = win_val
-    end
-  end
-
-  -- local events = { 'BufEnter', 'BufWinEnter', 'CursorMoved' }
-  local events = { 'CursorMoved' }
-
-  vim.api.nvim_create_autocmd(events, {
-    pattern = '*',
-    callback = function() config_winbar() end
-  })
-
-  --[[ vim.api.nvim_create_autocmd('User', {
-    pattern = 'LspsagaUpdateSymbol',
-    callback = function() config_winbar() end
-  }) ]]
 end
 
 return M

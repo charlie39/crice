@@ -109,7 +109,7 @@ function cdl {
 
 #changing directory by file/directory name {global}
 cdg() {
-    cd "$( sudo find / -type d -path /home -type d -prune -o -print |\
+    cd "$( sudo find / -type d -path /home -type d -prune -o -print 2>/dev/null |\
     fzf --layout reverse --height 50% --info inline --preview 'tree -C {}')" ;\
 }
 

@@ -54,3 +54,16 @@
 	ac = "!git add -A && git commit -m "
 [remote "hub"]
 	gh-resolved = base
+[sendemail]
+    smtpserver = mail.cock.li
+    smtpencryption = ssl
+    smtpserverport = 465
+#    smtpencryption = starttls
+#    smtpserverport = 587
+    smtpuser = charlie39@cock.li
+# google
+#    smtpserver = smtp.gmail.com
+#    smtpencryption = tls
+#    smtpserverport = 587
+#    smtpuser = iamkg050392@gmail.com
+#    suppresscc = self

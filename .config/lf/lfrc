@@ -28,7 +28,7 @@ cmd open $~/.config/lf/opener $fx
 # cmd mkdir $mkdir -p "$(echo $* | tr ' ' '\ ')"
 cmd mkdir %IFS=" "; mkdir -pv -- "$*"
 
-map <c-a> push :!touch<space>
+map <c-a> push :$touch<space>
 
 cmd delete ${{
 	clear; tput cup $(($(tput lines)/3)); tput bold
@@ -179,7 +179,7 @@ cmd run-escaped %{{
 map \\ push :run-escaped<space>
 
 # Put lf to background
-map <c-z> $ kill -STOP $PPID
+map <c-z> $kill -STOP $PPID
 
 # move items to trash
 %export file=""
@@ -188,7 +188,7 @@ cmd trash !{{
     if gio trash --list 2>/dev/null; then
         gio trash $fx
     else
-        mkdir -p $XDG_DATA_HOME/Trash
+        mkdir -p $XDG_DATA_HOME/Trash/files
         mv -- $fx $XDG_DATA_HOME/Trash/files
     fi
     file=$fx
@@ -208,10 +208,6 @@ map dl trash_list
 
 cmd trash_empty ${{
     if gio trash --list &>/dev/null; then
-        if $file ;then
-            gio trash --restore trash:///$file
-            exit 0
-        fi
         gio trash --empty
     else
         rm -rf $XDG_DATA_HOME/Trash/files/*
@@ -249,8 +245,35 @@ map ZX ${{
         application/zip) unzip -v $fx ;;
     esac
 }}
+
+# search by cmin
+cmd search-cmin %{{
+    ff=$(basename $f)
+    file=( $(find . -maxdepth 1 -type f -cmin -60 | tac | xargs -rI {} basename {}) )
+    if [[ ${#file[@]} -gt 0 ]];then
+        if [[ -n ${file[2]} ]] && [[ $ff == ${file[1]} ]] ; then
+            lf -remote "send $id select ${file[2]}"
+        elif [[ -n ${file[3]} ]] && [[ $ff == ${file[2]} ]] ; then
+            lf -remote "send $id select ${file[3]}"
+        elif [[ -n ${file[4]} ]] && [[ $ff == ${file[3]} ]] ; then
+            lf -remote "send $id select ${file[4]}"
+        elif [[ -n ${file[5]} ]] && [[ $ff == ${file[4]} ]] ; then
+            lf -remote "send $id select ${file[5]}"
+        else
+            lf -remote "send $id select ${file[1]}"
+        fi
+    else
+        echo "no files"
+    fi
+}}
+
+
+map c
+map cc clear
+map ca search-cmin $fx
+
 # Bindings
-map J $lf -remote "send $id select '$(fd -t d -- .  | fzf)'"
+map J $lf -remote "send $id select '$(fd . ~/ --max-depth=3 -t d -HLis | fzf)'"
 map D trash
 map Y copyto
 map M moveto
@@ -271,14 +294,14 @@ map R push A<c-a> # at the very beginning
 map r push A<a-b><a-b><a-f> # before extention
 map a push A<a-b> # after extention
 map b bulkrename
-map <tab> $lf -remote "send $id cmd-menu-complete"
-map <a-r> $lf -remote "send $id source ~/.config/lf/lfrc"
+map <a-r> %lf -remote "send $id source ~/.config/lf/lfrc" && echo 'sourced'
 map sl :set relativenumber
 map sN :set relativenumber off
 map <c-e> down
 map <c-y> up
 map V push :!nvim<space>
 map <tab>
+map <tab> $lf -remote "send $id cmd-menu-complete"
 map <tab> cmd-menu-complete
 
 # map yy push y
@@ -296,9 +319,12 @@ map dr cut-remove
 map <delete> delete
 
 # import some shell functions
-map <a-e> $zsh -ic el
+# map <a-e> $zsh -ic el
 
 map zf push :filter<space>
+map zd set dircounts!
+map zx $chmod +x $fx
+map zX $chmod -x $fx
 # cmap <up>    up
 # cmap <down>  down
 # cmap <left>  updir

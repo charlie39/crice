@@ -1,6 +1,10 @@
 local cmp = require 'cmp'
 local luasnip = require 'luasnip'
 local lspkind = require 'lspkind'
+--[[ local caps = require('cmp_nvim_lsp').default_capabilities()
+require('lspconfig')['lua_ls'].setup {
+  capabilities = caps
+} ]]
 
 local source_mapping = {
   buffer = "[Buffer]",

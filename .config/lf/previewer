@@ -148,7 +148,7 @@ case "$(file -Lb --mime-type -- "$1")" in
         draw "$1"
       fi
     fi
-    draw "$1"
+    # draw "$1"
     ;;
   video/* | audio/*)
      mediainfo "$1"
